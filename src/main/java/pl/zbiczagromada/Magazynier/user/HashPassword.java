@@ -1,5 +1,6 @@
 package pl.zbiczagromada.Magazynier.user;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,15 +8,15 @@ import javax.persistence.Column;
 
 public class HashPassword {
     @Column(nullable = false)
-    @Getter @Setter
+    @Getter @Setter(AccessLevel.PROTECTED)
     private String password;
 
     @Column(nullable = true)
-    @Getter @Setter
+    @Getter @Setter(AccessLevel.PROTECTED)
     private String password_salt;
 
     @Column(nullable = false)
-    @Getter @Setter
+    @Getter @Setter(AccessLevel.PROTECTED)
     private HashAlgo password_algo;
 
     public HashPassword(String cleartextpassword) {

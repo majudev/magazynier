@@ -20,29 +20,32 @@ public class UserAPIEndpoint {
     private int extendedSessionTimeout;
 
     private final UserRepository repo;
-    private final UserMgmtService userMgmtService;
+    private final UserCacheService userCache;
 
     @Autowired
-    public UserAPIEndpoint(UserRepository repo, UserMgmtService userMgmtService){
+    public UserAPIEndpoint(UserRepository repo, UserCacheService userCacheService){
         this.repo = repo;
-        this.userMgmtService = userMgmtService;
+        this.userCache = userCacheService;
     }
 
     @GetMapping
-    public User getInfo(HttpSession session) throws UserNotLoggedInException, UserRepository.UserNotFoundException {
+    public User getInfo(HttpSession session) {
         final Long userId = (Long) session.getAttribute("id");
         if(userId == null) throw new UserNotLoggedInException();
-        Optional<User> user = repo.findById(userId);
+        //Optional<User> user = repo.findById(userId);
+        //if(!user.isPresent()) throw new UserRepository.UserNotFoundException(userId);
+        //return user.get();
+        Optional<User> user = userCache.getUserById(userId);
         if(!user.isPresent()) throw new UserRepository.UserNotFoundException(userId);
         return user.get();
     }
 
-    @RequestMapping(
-            method = RequestMethod.POST,
+    @PostMapping(
             path = "/login",
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
-    public User login(@RequestBody LoginRequest request, HttpSession session) throws UserAlreadyLoggedInException, UserRepository.UserNotFoundException, InvalidParametersException {
+    @Transactional(value = Transactional.TxType.NEVER)
+    public User login(@RequestBody LoginRequest request, HttpSession session) {
         final Long userId = (Long) session.getAttribute("id");
         if(userId != null) throw new UserAlreadyLoggedInException(request.getUsername());
         if(request.getUsername() == null || request.getPassword() == null) throw new InvalidParametersException();
@@ -55,20 +58,18 @@ public class UserAPIEndpoint {
 
         session.setAttribute("id", user.getId());
         session.setAttribute("username", user.getUsername());
-        //session.setAttribute("userobject", user);
         if(request.isRememberMe()) session.setMaxInactiveInterval(extendedSessionTimeout);
         else session.setMaxInactiveInterval(standardSessionTimeout);
 
         return user;
     }
 
-    @RequestMapping(
-            method = RequestMethod.POST,
+    @PostMapping(
             path = "/register",
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
     @Transactional
-    public void register(@RequestBody RegisterRequest request, HttpSession session) throws UserAlreadyLoggedInException, InvalidParametersException {
+    public void register(@RequestBody RegisterRequest request, HttpSession session) {
         final Long userId = (Long) session.getAttribute("id");
         if(userId != null) throw new UserAlreadyLoggedInException(request.getUsername());
         if(request.getUsername() == null || request.getPassword() == null || request.getEmail() == null) throw new InvalidParametersException();
@@ -82,13 +83,12 @@ public class UserAPIEndpoint {
         repo.saveAndFlush(user);
     }
 
-    @RequestMapping(
-            method = RequestMethod.PUT,
+    @PutMapping(
             path = "/changepassword",
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
     @Transactional
-    public void changePassword(@RequestBody ChangePasswordRequest request, HttpSession session) throws UserAlreadyLoggedInException, InvalidParametersException {
+    public void changePassword(@RequestBody ChangePasswordRequest request, HttpSession session) {
         final Long userId = (Long) session.getAttribute("id");
         final String username = (String) session.getAttribute("username");
         if(userId == null) throw new UserNotLoggedInException();
@@ -96,7 +96,7 @@ public class UserAPIEndpoint {
 
         // perform new password validation
         Optional<User> userOptional = repo.findById(userId);
-        if(!userOptional.isPresent()) throw new UserRepository.UserNotFoundException(username);
+        if(userOptional.isEmpty()) throw new UserRepository.UserNotFoundException(username);
         User user = userOptional.get();
 
         if(!user.getPassword().validate(request.getPassword())) throw new InvalidCredentialsException(username);
@@ -108,8 +108,10 @@ public class UserAPIEndpoint {
         session.invalidate();
     }
 
-    @GetMapping(path = "/logout")
-    public void logout(HttpSession session) throws UserNotLoggedInException, UserRepository.UserNotFoundException {
+    @GetMapping(
+            path = "/logout"
+    )
+    public void logout(HttpSession session) {
         Long userId = (Long) session.getAttribute("id");
         if(userId == null) throw new UserNotLoggedInException();
 
