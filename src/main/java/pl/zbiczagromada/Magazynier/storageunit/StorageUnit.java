@@ -1,11 +1,11 @@
-package pl.zbiczagromada.Magazynier.warehouse;
+package pl.zbiczagromada.Magazynier.storageunit;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import pl.zbiczagromada.Magazynier.item.Item;
+import pl.zbiczagromada.Magazynier.warehouse.Warehouse;
 
 import javax.persistence.*;
 import java.util.List;

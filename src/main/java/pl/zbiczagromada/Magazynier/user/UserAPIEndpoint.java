@@ -8,6 +8,7 @@ import pl.zbiczagromada.Magazynier.user.apirequests.ChangePasswordRequest;
 import pl.zbiczagromada.Magazynier.user.apirequests.LoginRequest;
 import pl.zbiczagromada.Magazynier.user.apirequests.RegisterRequest;
 import pl.zbiczagromada.Magazynier.user.exceptions.*;
+import pl.zbiczagromada.Magazynier.user.permissiongroups.UserPermissionService;
 
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
@@ -23,11 +24,15 @@ public class UserAPIEndpoint {
 
     private final UserRepository repo;
     private final UserCacheService userCache;
+    private final UserPermissionService userPermissionService;
 
     @Autowired
-    public UserAPIEndpoint(UserRepository repo, UserCacheService userCacheService){
+    public UserAPIEndpoint(UserRepository repo, UserCacheService userCacheService, UserPermissionService userPermissionService){
         this.repo = repo;
         this.userCache = userCacheService;
+        this.userPermissionService = userPermissionService;
+
+        userPermissionService.registerPermission("user.self.changepassword", UserPermissionService.AccessLevel.ALLOW);
     }
 
     @GetMapping
@@ -86,6 +91,8 @@ public class UserAPIEndpoint {
     @Transactional
     public void changePassword(@RequestBody ChangePasswordRequest request, HttpSession session) {
         User user = userCache.getUserFromSession(session);
+        userPermissionService.checkUserAllowed("user.self.changepassword", user);
+
         if(request.getPassword() == null || request.getNewpassword() == null) throw new InvalidParametersException();
 
         // perform new password validation

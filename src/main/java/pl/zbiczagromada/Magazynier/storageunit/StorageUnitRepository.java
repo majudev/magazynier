@@ -1,7 +1,6 @@
-package pl.zbiczagromada.Magazynier.warehouse;
+package pl.zbiczagromada.Magazynier.storageunit;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import pl.zbiczagromada.Magazynier.user.User;
 
 import java.util.Optional;
 

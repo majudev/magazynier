@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import pl.zbiczagromada.Magazynier.user.permissiongroups.PermissionGroup;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
 @Table(name = "users")
+@Getter @Setter
 public class User {
     @Id
     @SequenceGenerator(
@@ -23,22 +25,23 @@ public class User {
     )
     @JsonIgnore
     @Column(name = "user_id")
-    @Getter
+    @Setter(AccessLevel.NONE)
     private Long id;
 
     @Column(nullable = false, unique = true)
-    @Getter @Setter
+    @Setter(AccessLevel.NONE)
     private String username;
 
     @Column(nullable = false, unique = true)
-    @Getter @Setter
     private String email;
 
     @Column(nullable = false)
     @Embedded
     @JsonIgnore
-    @Getter @Setter
     private HashPassword password;
+
+    @Column
+    private String permissionGroup;
 
     public User(String username, String email, HashPassword password) {
         this.username = username;

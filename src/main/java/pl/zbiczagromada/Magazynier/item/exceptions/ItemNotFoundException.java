@@ -1,4 +1,4 @@
-package pl.zbiczagromada.Magazynier.warehouse.exceptions;
+package pl.zbiczagromada.Magazynier.item.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;

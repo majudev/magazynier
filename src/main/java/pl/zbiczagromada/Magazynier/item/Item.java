@@ -1,13 +1,13 @@
-package pl.zbiczagromada.Magazynier.warehouse;
+package pl.zbiczagromada.Magazynier.item;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import pl.zbiczagromada.Magazynier.itemgroup.ItemGroup;
+import pl.zbiczagromada.Magazynier.storageunit.StorageUnit;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Entity
 @Table(name = "items")
