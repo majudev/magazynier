@@ -6,11 +6,13 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import pl.zbiczagromada.Magazynier.user.exceptions.UserNotFoundException;
+import pl.zbiczagromada.Magazynier.user.exceptions.UserNotLoggedInException;
 
+import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
@@ -29,6 +31,16 @@ public class UserCacheService {
     @Autowired
     public UserCacheService(UserRepository userRepository) {
         this.repo = userRepository;
+    }
+
+    public User getUserFromSession(HttpSession session) throws UserNotLoggedInException, UserNotFoundException {
+        final Long userId = (Long) session.getAttribute("id");
+        if(userId == null) throw new UserNotLoggedInException();
+
+        Optional<User> user = this.getUserById(userId);
+        if(!user.isPresent()) throw new UserNotFoundException(userId);
+
+        return user.get();
     }
 
     public Optional<User> getUserById(Long id){

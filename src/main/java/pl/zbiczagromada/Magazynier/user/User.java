@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -21,6 +22,7 @@ public class User {
             strategy = GenerationType.SEQUENCE
     )
     @JsonIgnore
+    @Column(name = "user_id")
     @Getter
     private Long id;
 

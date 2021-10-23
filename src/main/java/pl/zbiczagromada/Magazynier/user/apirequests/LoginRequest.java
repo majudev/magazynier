@@ -1,4 +1,4 @@
-package pl.zbiczagromada.Magazynier.user;
+package pl.zbiczagromada.Magazynier.user.apirequests;
 
 import lombok.Getter;
 

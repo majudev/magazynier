@@ -15,13 +15,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);
 
-    public static class UserNotFoundException extends ResponseStatusException {
-        public UserNotFoundException(String username) {
-            super(HttpStatus.INTERNAL_SERVER_ERROR, "user '" + username + "' not found in internal database");
-        }
-
-        public UserNotFoundException(Long id) {
-            super(HttpStatus.INTERNAL_SERVER_ERROR, "user with id '" + id + "' not found in internal database");
-        }
-    }
 }

@@ -12,11 +12,11 @@ public class UserConfig {
     @Bean
     public CommandLineRunner initUsers(UserRepository repo){
         return args -> {
-            repo.save(new User(
+            /*repo.save(new User(
                     "nobody",
                     "nobody@all",
                     new HashPassword("helloworld")
-            ));
+            ));*/
         };
     }
 }
