@@ -56,9 +56,7 @@ public class UserAPIEndpoint {
         if(request.getUsername() == null) throw new InvalidRequestException(List.of("username"));
         if(request.getPassword() == null) throw new InvalidRequestException(List.of("password"));
 
-        Optional<User> userOptional = repo.findByUsername(request.getUsername());
-        if(!userOptional.isPresent()) throw new UserNotFoundException(request.getUsername());
-        User user = userOptional.get();
+        User user = repo.findByUsername(request.getUsername()).orElseThrow(() -> new UserNotFoundException(request.getUsername()));
 
         if(!user.getPassword().validate(request.getPassword())) throw new InvalidCredentialsException(request.getUsername());
 

@@ -46,7 +46,8 @@ public class WarehouseAPIEndpoint {
                 "location",
                 "description",
                 "storageUnits.id",
-                "storageUnits.name"
+                "storageUnits.name",
+                "storageUnits.description"
         };
 
         return FieldProjector.projectList(warehouses, objectFields);
@@ -65,7 +66,8 @@ public class WarehouseAPIEndpoint {
                 "location",
                 "description",
                 "storageUnits.id",
-                "storageUnits.name"
+                "storageUnits.name",
+                "storageUnits.description"
         };
 
         return FieldProjector.project(warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id)), objectFields);
