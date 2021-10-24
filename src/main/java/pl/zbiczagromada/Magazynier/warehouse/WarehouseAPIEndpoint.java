@@ -50,8 +50,6 @@ public class WarehouseAPIEndpoint {
         };
 
         return FieldProjector.projectList(warehouses, objectFields);
-
-        //return warehouses;
     }
 
     @GetMapping(
@@ -71,7 +69,6 @@ public class WarehouseAPIEndpoint {
         };
 
         return FieldProjector.project(warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id)), objectFields);
-        //return warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id));
     }
 
     @PostMapping(
@@ -122,7 +119,6 @@ public class WarehouseAPIEndpoint {
         User user = userCache.getUserFromSession(session);
         //if user has permissions
 
-        //StorageUnit storageUnit = storageUnitRepository.findById(id).orElseThrow(() -> new StorageUnitNotFoundException(id));
         Warehouse warehouse = warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id));
 
         if(!warehouse.getStorageUnits().isEmpty()) throw new WarehouseNotEmptyException(id);

@@ -80,7 +80,6 @@ public class StorageUnitAPIEndpoint {
         if(name != null) storageUnit.setName(name);
         if(location != null) storageUnit.setLocation(location);
         if(description != null) storageUnit.setDescription(description);
-        //if(warehouse != null) storageUnit.setWarehouse(warehouse);
 
         return storageUnitRepository.saveAndFlush(storageUnit);
     }

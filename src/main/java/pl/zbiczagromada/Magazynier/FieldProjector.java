@@ -1,7 +1,11 @@
 package pl.zbiczagromada.Magazynier;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FieldProjector {
     // returns a List of Maps containing projected field names and values

@@ -51,9 +51,8 @@ public class UserAPIEndpoint {
     @Transactional(value = Transactional.TxType.NEVER)
     public User login(@RequestBody LoginRequest request, HttpSession session) {
         final Long userId = (Long) session.getAttribute("id");
-        //if(userId != null) throw new UserAlreadyLoggedInException(request.getUsername());
         if(userId != null) return userCache.getUserFromSession(session);
-        //if(request.getUsername() == null || request.getPassword() == null) throw new InvalidParametersException();
+
         if(request.getUsername() == null) throw new InvalidRequestException(List.of("username"));
         if(request.getPassword() == null) throw new InvalidRequestException(List.of("password"));
 
@@ -92,7 +91,7 @@ public class UserAPIEndpoint {
     public void register(@RequestBody RegisterRequest request, HttpSession session) {
         final Long userId = (Long) session.getAttribute("id");
         if(userId != null) throw new UserAlreadyLoggedInException(request.getUsername());
-        //if(request.getUsername() == null || request.getPassword() == null || request.getEmail() == null) throw new InvalidParametersException();
+
         if(request.getUsername() == null) throw new InvalidRequestException(List.of("username"));
         if(request.getPassword() == null) throw new InvalidRequestException(List.of("password"));
         if(request.getEmail() == null) throw new InvalidRequestException(List.of("email"));
@@ -115,7 +114,6 @@ public class UserAPIEndpoint {
         User user = userCache.getUserFromSession(session);
         userPermissionService.checkUserAllowed("user.self.changepassword", user);
 
-        //if(request.getPassword() == null || request.getNewpassword() == null) throw new InvalidParametersException();
         if(request.getPassword() == null) throw new InvalidRequestException(List.of("password"));
         if(request.getNewpassword() == null) throw new InvalidRequestException(List.of("newpassword"));
 
