@@ -13,6 +13,6 @@ public class InvalidRequestException extends ResponseStatusException {
     }
 
     public InvalidRequestException(List<String> fields) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " the following " + base2 + ": " + fields.toString());
+        super(HttpStatus.BAD_REQUEST, base1 + " the following " + base2 + ": " + fields.toString());
     }
 }

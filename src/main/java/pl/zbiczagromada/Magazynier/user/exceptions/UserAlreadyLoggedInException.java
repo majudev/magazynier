@@ -8,14 +8,14 @@ public class UserAlreadyLoggedInException extends ResponseStatusException {
     private final static String base2 = "already logged in";
 
     public UserAlreadyLoggedInException() {
-        super(HttpStatus.UNAUTHORIZED, base1 + " " + base2);
+        super(HttpStatus.FORBIDDEN, base1 + " " + base2);
     }
 
     public UserAlreadyLoggedInException(String username) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " '" + username + "' " + base2);
+        super(HttpStatus.FORBIDDEN, base1 + " '" + username + "' " + base2);
     }
 
     public UserAlreadyLoggedInException(Long id) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " with id '" + id + "' " + base2);
+        super(HttpStatus.FORBIDDEN, base1 + " with id '" + id + "' " + base2);
     }
 }

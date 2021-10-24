@@ -7,14 +7,14 @@ public class WarehouseNotEmptyException extends ResponseStatusException {
     private final static String base1 = "warehouse";
     private final static String base2 = "is not empty";
     public WarehouseNotEmptyException() {
-        super(HttpStatus.UNAUTHORIZED, base1 + " " + base2);
+        super(HttpStatus.CONFLICT, base1 + " " + base2);
     }
 
     public WarehouseNotEmptyException(String name) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " '" + name + "' " + base2);
+        super(HttpStatus.CONFLICT, base1 + " '" + name + "' " + base2);
     }
 
     public WarehouseNotEmptyException(Long id) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " with id '" + id + "' " + base2);
+        super(HttpStatus.CONFLICT, base1 + " with id '" + id + "' " + base2);
     }
 }

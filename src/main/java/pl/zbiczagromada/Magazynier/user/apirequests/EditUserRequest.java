@@ -4,9 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class RegisterRequest {
-    private String username;
+public class EditUserRequest {
     private String displayname;
-    private String password;
     private String email;
 }

@@ -8,14 +8,14 @@ public class InsufficientPermissionsException extends ResponseStatusException {
     private final static String base2 = "doesnt have permission to do this";
 
     public InsufficientPermissionsException() {
-        super(HttpStatus.UNAUTHORIZED, base1 + " " + base2);
+        super(HttpStatus.FORBIDDEN, base1 + " " + base2);
     }
 
     public InsufficientPermissionsException(String username) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " '" + username + "' " + base2);
+        super(HttpStatus.FORBIDDEN, base1 + " '" + username + "' " + base2);
     }
 
     public InsufficientPermissionsException(Long id) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " with id '" + id + "' " + base2);
+        super(HttpStatus.FORBIDDEN, base1 + " with id '" + id + "' " + base2);
     }
 }

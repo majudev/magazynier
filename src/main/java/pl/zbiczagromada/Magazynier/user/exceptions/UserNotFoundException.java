@@ -5,10 +5,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 public class UserNotFoundException extends ResponseStatusException {
     public UserNotFoundException(String username) {
-        super(HttpStatus.INTERNAL_SERVER_ERROR, "user '" + username + "' not found in internal database");
+        super(HttpStatus.BAD_REQUEST, "user '" + username + "' not found in internal database");
     }
 
     public UserNotFoundException(Long id) {
-        super(HttpStatus.INTERNAL_SERVER_ERROR, "user with id '" + id + "' not found in internal database");
+        super(HttpStatus.BAD_REQUEST, "user with id '" + id + "' not found in internal database");
     }
 }

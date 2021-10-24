@@ -7,14 +7,14 @@ public class StorageUnitNotEmptyException extends ResponseStatusException {
     private final static String base1 = "storage unit";
     private final static String base2 = "is not empty";
     public StorageUnitNotEmptyException() {
-        super(HttpStatus.UNAUTHORIZED, base1 + " " + base2);
+        super(HttpStatus.CONFLICT, base1 + " " + base2);
     }
 
     public StorageUnitNotEmptyException(String name) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " '" + name + "' " + base2);
+        super(HttpStatus.CONFLICT, base1 + " '" + name + "' " + base2);
     }
 
     public StorageUnitNotEmptyException(Long id) {
-        super(HttpStatus.UNAUTHORIZED, base1 + " with id '" + id + "' " + base2);
+        super(HttpStatus.CONFLICT, base1 + " with id '" + id + "' " + base2);
     }
 }

@@ -99,7 +99,7 @@ public class UserPermissionService {
     }
 
     private Map<String, AccessLevel> mapFromPermissionGroup(String groupName) throws PermissionGroupNotFoundException{
-        if(groupName == "Admin") return this.getAdmin();
+        if(groupName == "admin") return this.getAdmin();
 
         PermissionGroup permissionGroup = permissionGroupRepository.findByGroupName(groupName).orElseThrow(() -> new PermissionGroupNotFoundException(groupName));
         return permissionGroup.getPermissionsList();

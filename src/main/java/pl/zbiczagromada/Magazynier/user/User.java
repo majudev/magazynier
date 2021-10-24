@@ -32,6 +32,8 @@ public class User {
     @Setter(AccessLevel.NONE)
     private String username;
 
+    private String displayname;
+
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -43,8 +45,9 @@ public class User {
     @Column
     private String permissionGroup;
 
-    public User(String username, String email, HashPassword password) {
+    public User(String username, String displayname, String email, HashPassword password) {
         this.username = username;
+        this.displayname = displayname;
         this.email = email;
         this.password = password;
     }
