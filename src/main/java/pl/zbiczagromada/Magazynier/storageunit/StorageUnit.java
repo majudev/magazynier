@@ -36,10 +36,6 @@ public class StorageUnit {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Warehouse warehouse;
 
-    @Transient
-    @Getter(lazy = true)
-    private final Long warehouseId = this.getWarehouseIdLazy();
-
     private String location;
 
     private String description;
@@ -59,7 +55,7 @@ public class StorageUnit {
         this.warehouse = warehouse;
     }
 
-    private Long getWarehouseIdLazy(){
+    public Long getWarehouseId(){
         if(this.warehouse == null) return null;
         return this.warehouse.getId();
     }

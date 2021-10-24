@@ -74,10 +74,6 @@ public class StorageUnitAPIEndpoint {
         String name = request.getName();
         String location = request.getLocation();
         String description = request.getDescription();
-        /*Warehouse warehouse = null;
-        if(request.getWarehouseId() != null){
-            warehouse = warehouseRepository.findById(request.getWarehouseId()).orElseThrow(() -> new WarehouseNotFoundException(request.getWarehouseId()));
-        }*/
 
         StorageUnit storageUnit = storageUnitRepository.findById(id).orElseThrow(() -> new StorageUnitNotFoundException(id));
 

@@ -2,6 +2,7 @@ package pl.zbiczagromada.Magazynier.itemgroup;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import pl.zbiczagromada.Magazynier.item.Item;
 import pl.zbiczagromada.Magazynier.item.ItemRepository;
 import pl.zbiczagromada.Magazynier.user.User;
 import pl.zbiczagromada.Magazynier.user.UserCacheService;
@@ -28,6 +29,17 @@ public class ItemGroupAPIEndpoint {
     private WarehouseRepository warehouseRepository;
     @Autowired
     private UserCacheService userCache;
+
+    @GetMapping(
+            path = "/get"
+    )
+    public List<ItemGroup> getAllItemGroups(HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        List<ItemGroup> itemGroups = itemGroupRepository.findAll();
+        return itemGroups;
+    }
 
     @GetMapping(
             path = "/get/{id}"

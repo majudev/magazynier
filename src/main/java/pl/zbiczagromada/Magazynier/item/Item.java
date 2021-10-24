@@ -43,14 +43,6 @@ public class Item {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private StorageUnit storageUnit;
 
-    @Transient
-    @Getter(lazy = true)
-    private final Long itemGroupId = this.getItemGroupIdLazy();
-
-    @Transient
-    @Getter(lazy = true)
-    private final Long storageUnitId = this.getStorageUnitIdLazy();
-
     private Item() {}
 
     public Item(String mark, ItemGroup itemGroup, StorageUnit storageUnit, String notes) {
@@ -60,12 +52,12 @@ public class Item {
         this.notes = notes;
     }
 
-    private Long getItemGroupIdLazy(){
+    public Long getItemGroupId(){
         if(this.itemGroup == null) return null;
         return this.itemGroup.getId();
     }
 
-    private Long getStorageUnitIdLazy(){
+    public Long getStorageUnitId(){
         if(this.storageUnit == null) return null;
         return this.storageUnit.getId();
     }

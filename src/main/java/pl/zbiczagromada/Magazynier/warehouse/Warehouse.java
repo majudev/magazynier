@@ -1,5 +1,6 @@
 package pl.zbiczagromada.Magazynier.warehouse;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,6 +37,7 @@ public class Warehouse {
     @OneToMany(mappedBy = "warehouse",
             cascade = CascadeType.ALL
     )
+    @Setter(AccessLevel.NONE)
     private List<StorageUnit> storageUnits;
 
     private Warehouse() {}

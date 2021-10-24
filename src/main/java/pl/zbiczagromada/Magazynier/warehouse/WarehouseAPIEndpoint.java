@@ -2,6 +2,7 @@ package pl.zbiczagromada.Magazynier.warehouse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import pl.zbiczagromada.Magazynier.FieldProjector;
 import pl.zbiczagromada.Magazynier.exceptions.InvalidRequestException;
 import pl.zbiczagromada.Magazynier.item.ItemRepository;
 import pl.zbiczagromada.Magazynier.itemgroup.ItemGroupRepository;
@@ -14,6 +15,7 @@ import pl.zbiczagromada.Magazynier.warehouse.exceptions.WarehouseNotFoundExcepti
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/warehouse")
@@ -30,13 +32,46 @@ public class WarehouseAPIEndpoint {
     private UserCacheService userCache;
 
     @GetMapping(
-            path = "/get/{id}"
+            path = "/get"
     )
-    public Warehouse getWarehouse(@PathVariable Long id, HttpSession session){
+    public List<Map<String, Object>> getAllWarehouses(HttpSession session){
         User user = userCache.getUserFromSession(session);
         //if user has permissions
 
-        return warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id));
+        List<Warehouse> warehouses = warehouseRepository.findAll();
+
+        String[] objectFields = {
+                "id",
+                "name",
+                "location",
+                "description",
+                "storageUnits.id",
+                "storageUnits.name"
+        };
+
+        return FieldProjector.projectList(warehouses, objectFields);
+
+        //return warehouses;
+    }
+
+    @GetMapping(
+            path = "/get/{id}"
+    )
+    public Map<String, Object> getWarehouse(@PathVariable Long id, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        String[] objectFields = {
+                "id",
+                "name",
+                "location",
+                "description",
+                "storageUnits.id",
+                "storageUnits.name"
+        };
+
+        return FieldProjector.project(warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id)), objectFields);
+        //return warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id));
     }
 
     @PostMapping(
