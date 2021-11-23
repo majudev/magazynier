@@ -3,6 +3,7 @@ package pl.zbiczagromada.Magazynier.warehouse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.zbiczagromada.Magazynier.FieldProjector;
+import pl.zbiczagromada.Magazynier.exceptions.EmptyPropertyException;
 import pl.zbiczagromada.Magazynier.exceptions.InvalidRequestException;
 import pl.zbiczagromada.Magazynier.item.ItemRepository;
 import pl.zbiczagromada.Magazynier.itemgroup.ItemGroupRepository;
@@ -31,6 +32,16 @@ public class WarehouseAPIEndpoint {
     @Autowired
     private UserCacheService userCache;
 
+    String[] warehouseResponseFields = {
+            "id",
+            "name",
+            "location",
+            "description",
+            "storageUnits.id",
+            "storageUnits.name",
+            "storageUnits.description"
+    };
+
     @GetMapping(
             path = "/get"
     )
@@ -40,17 +51,7 @@ public class WarehouseAPIEndpoint {
 
         List<Warehouse> warehouses = warehouseRepository.findAll();
 
-        String[] objectFields = {
-                "id",
-                "name",
-                "location",
-                "description",
-                "storageUnits.id",
-                "storageUnits.name",
-                "storageUnits.description"
-        };
-
-        return FieldProjector.projectList(warehouses, objectFields);
+        return FieldProjector.projectList(warehouses, warehouseResponseFields);
     }
 
     @GetMapping(
@@ -60,17 +61,7 @@ public class WarehouseAPIEndpoint {
         User user = userCache.getUserFromSession(session);
         //if user has permissions
 
-        String[] objectFields = {
-                "id",
-                "name",
-                "location",
-                "description",
-                "storageUnits.id",
-                "storageUnits.name",
-                "storageUnits.description"
-        };
-
-        return FieldProjector.project(warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id)), objectFields);
+        return FieldProjector.project(warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id)), warehouseResponseFields);
     }
 
     @PostMapping(
@@ -86,6 +77,10 @@ public class WarehouseAPIEndpoint {
         String description = request.getDescription();
 
         if(name == null) throw new InvalidRequestException(List.of("name"));
+        if(name.isEmpty()) throw new EmptyPropertyException(List.of("name"));
+
+        if(location != null && location.isEmpty()) location = null;
+        if(description != null && description.isEmpty()) description = null;
 
         Warehouse warehouse = new Warehouse(name, location, description);
 
@@ -96,7 +91,7 @@ public class WarehouseAPIEndpoint {
             path = "/edit/{id}"
     )
     @Transactional
-    public Warehouse editWarehouse(@PathVariable Long id, @RequestBody Warehouse request, HttpSession session){
+    public Map<String, Object> editWarehouse(@PathVariable Long id, @RequestBody Warehouse request, HttpSession session){
         User user = userCache.getUserFromSession(session);
         //if user has permissions
 
@@ -106,11 +101,22 @@ public class WarehouseAPIEndpoint {
 
         Warehouse warehouse = warehouseRepository.findById(id).orElseThrow(() -> new WarehouseNotFoundException(id));
 
-        if(name != null) warehouse.setName(name);
-        if(location != null) warehouse.setName(location);
-        if(description != null) warehouse.setName(description);
+        if(name != null){
+            if(name.isEmpty()) throw new EmptyPropertyException(List.of("name"));
+            warehouse.setName(name);
+        }
+        if(location != null){
+            if(location == "") warehouse.setLocation(null);
+            else warehouse.setLocation(location);
+        }
+        if(description != null){
+            if(description == "") warehouse.setDescription(null);
+            else warehouse.setDescription(description);
+        }
 
-        return warehouseRepository.saveAndFlush(warehouse);
+        warehouse = warehouseRepository.saveAndFlush(warehouse);
+
+        return FieldProjector.project(warehouse, warehouseResponseFields);
     }
 
     @DeleteMapping(

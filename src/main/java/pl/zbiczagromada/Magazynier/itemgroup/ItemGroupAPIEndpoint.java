@@ -2,7 +2,7 @@ package pl.zbiczagromada.Magazynier.itemgroup;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pl.zbiczagromada.Magazynier.item.Item;
+import pl.zbiczagromada.Magazynier.FieldProjector;
 import pl.zbiczagromada.Magazynier.item.ItemRepository;
 import pl.zbiczagromada.Magazynier.user.User;
 import pl.zbiczagromada.Magazynier.user.UserCacheService;
@@ -15,6 +15,7 @@ import pl.zbiczagromada.Magazynier.itemgroup.exceptions.ItemGroupNotFoundExcepti
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/itemgroup")
@@ -29,6 +30,12 @@ public class ItemGroupAPIEndpoint {
     private WarehouseRepository warehouseRepository;
     @Autowired
     private UserCacheService userCache;
+
+    String[] slimResponseFields = {
+            "id",
+            "name",
+            "mark"
+    };
 
     @GetMapping(
             path = "/get"
@@ -49,6 +56,18 @@ public class ItemGroupAPIEndpoint {
         //if user has permissions
 
         return itemGroupRepository.findById(id).orElseThrow(() -> new ItemGroupNotFoundException(id));
+    }
+
+    @GetMapping(
+            path = "/meta/{id}"
+    )
+    public Map<String, Object> getItemGroupMeta(@PathVariable Long id, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        ItemGroup itemGroup = itemGroupRepository.findById(id).orElseThrow(() -> new ItemGroupNotFoundException(id));
+
+        return FieldProjector.project(itemGroup, slimResponseFields);
     }
 
     @PostMapping(

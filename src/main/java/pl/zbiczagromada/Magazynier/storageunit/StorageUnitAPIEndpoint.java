@@ -2,9 +2,14 @@ package pl.zbiczagromada.Magazynier.storageunit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import pl.zbiczagromada.Magazynier.FieldProjector;
+import pl.zbiczagromada.Magazynier.exceptions.EmptyPropertyException;
 import pl.zbiczagromada.Magazynier.exceptions.InvalidRequestException;
+import pl.zbiczagromada.Magazynier.item.Item;
 import pl.zbiczagromada.Magazynier.item.ItemRepository;
+import pl.zbiczagromada.Magazynier.itemgroup.ItemGroup;
 import pl.zbiczagromada.Magazynier.itemgroup.ItemGroupRepository;
+import pl.zbiczagromada.Magazynier.itemgroup.ItemGrouping;
 import pl.zbiczagromada.Magazynier.user.User;
 import pl.zbiczagromada.Magazynier.user.UserCacheService;
 import pl.zbiczagromada.Magazynier.warehouse.Warehouse;
@@ -15,7 +20,10 @@ import pl.zbiczagromada.Magazynier.warehouse.exceptions.WarehouseNotFoundExcepti
 
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/storageunit")
@@ -31,6 +39,14 @@ public class StorageUnitAPIEndpoint {
     @Autowired
     private UserCacheService userCache;
 
+    String[] slimResponseFields = {
+            "id",
+            "name",
+            "location",
+            "description",
+            "warehouseId"
+    };
+
     @GetMapping(
             path = "/get/{id}"
     )
@@ -41,11 +57,47 @@ public class StorageUnitAPIEndpoint {
         return storageUnitRepository.findById(id).orElseThrow(() -> new StorageUnitNotFoundException(id));
     }
 
+    @GetMapping(
+            path = "/meta/{id}"
+    )
+    public Map<String, Object> getStorageUnitMeta(@PathVariable Long id, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        StorageUnit storageUnit = storageUnitRepository.findById(id).orElseThrow(() -> new StorageUnitNotFoundException(id));
+
+        return FieldProjector.project(storageUnit, slimResponseFields);
+    }
+
+    @GetMapping(
+            path = "/items/{id}"
+    )
+    public List<Item> getStorageUnitItems(@PathVariable Long id, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        StorageUnit storageUnit = storageUnitRepository.findById(id).orElseThrow(() -> new StorageUnitNotFoundException(id));
+
+        return storageUnit.getItems();
+    }
+
+    @GetMapping(
+            path = "/items/grouped/{id}"
+    )
+    public List<ItemGrouping> getStorageUnitItemsGrouped(@PathVariable Long id, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        StorageUnit storageUnit = storageUnitRepository.findById(id).orElseThrow(() -> new StorageUnitNotFoundException(id));
+        //itemGroupRepository.findAllByStorageUnitIdPastItem(storageUnit.getId());
+        return ItemGrouping.createGroupingFromStorageUnit(storageUnit);
+    }
+
     @PostMapping(
-            path = "/new"
+            path = "/new/{warehouseId}"
     )
     @Transactional
-    public StorageUnit addStorageUnit(@RequestBody StorageUnit request, HttpSession session){
+    public StorageUnit addStorageUnit(@PathVariable Long warehouseId, @RequestBody StorageUnit request, HttpSession session){
         User user = userCache.getUserFromSession(session);
         //if user has permissions
 
@@ -54,9 +106,12 @@ public class StorageUnitAPIEndpoint {
         String description = request.getDescription();
 
         if(name == null) throw new InvalidRequestException(List.of("name"));
-        if(request.getWarehouseId() == null) throw new InvalidRequestException(List.of("warehouse"));
+        if(name.isEmpty()) throw new EmptyPropertyException(List.of("name"));
 
-        Warehouse warehouse = warehouseRepository.findById(request.getWarehouseId()).orElseThrow(() -> new WarehouseNotFoundException(request.getWarehouseId()));
+        if(location.isEmpty()) location = null;
+        if(description.isEmpty()) description = null;
+
+        Warehouse warehouse = warehouseRepository.findById(warehouseId).orElseThrow(() -> new WarehouseNotFoundException(warehouseId));
 
         StorageUnit storageUnit = new StorageUnit(name, location, description, warehouse);
 
@@ -67,7 +122,7 @@ public class StorageUnitAPIEndpoint {
             path = "/edit/{id}"
     )
     @Transactional
-    public StorageUnit editStorageUnit(@PathVariable Long id, @RequestBody StorageUnit request, HttpSession session){
+    public Map<String, Object> editStorageUnit(@PathVariable Long id, @RequestBody StorageUnit request, HttpSession session){
         User user = userCache.getUserFromSession(session);
         //if user has permissions
 
@@ -77,18 +132,29 @@ public class StorageUnitAPIEndpoint {
 
         StorageUnit storageUnit = storageUnitRepository.findById(id).orElseThrow(() -> new StorageUnitNotFoundException(id));
 
-        if(name != null) storageUnit.setName(name);
-        if(location != null) storageUnit.setLocation(location);
-        if(description != null) storageUnit.setDescription(description);
+        if(name != null){
+            if(name.isEmpty()) throw new EmptyPropertyException(List.of("name"));
+            storageUnit.setName(name);
+        }
+        if(location != null){
+            if(location.isEmpty()) storageUnit.setLocation(null);
+            else storageUnit.setLocation(location);
+        }
+        if(description != null){
+            if(description.isEmpty()) storageUnit.setDescription(null);
+            else storageUnit.setDescription(description);
+        }
 
-        return storageUnitRepository.saveAndFlush(storageUnit);
+        storageUnit = storageUnitRepository.saveAndFlush(storageUnit);
+
+        return FieldProjector.project(storageUnit, slimResponseFields);
     }
 
     @PutMapping(
             path = "/move/{id}/{newWarehouseId}"
     )
     @Transactional
-    public StorageUnit moveStorageUnit(@PathVariable Long id, @PathVariable Long newWarehouseId, HttpSession session){
+    public Map<String, Object> moveStorageUnit(@PathVariable Long id, @PathVariable Long newWarehouseId, HttpSession session){
         User user = userCache.getUserFromSession(session);
         //if user has permissions
 
@@ -97,8 +163,11 @@ public class StorageUnitAPIEndpoint {
         StorageUnit storageUnit = storageUnitRepository.findById(id).orElseThrow(() -> new StorageUnitNotFoundException(id));
 
         storageUnit.setWarehouse(newWarehouse);
+        storageUnit.setLocation(null);
 
-        return storageUnitRepository.saveAndFlush(storageUnit);
+        storageUnit = storageUnitRepository.saveAndFlush(storageUnit);
+
+        return FieldProjector.project(storageUnit, slimResponseFields);
     }
 
     @DeleteMapping(

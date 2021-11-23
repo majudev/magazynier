@@ -47,7 +47,7 @@ class UserCacheServiceTest {
     void getUserById() {
         List<User> userList = new ArrayList<User>();
         for(int i = 0; i < cacheMaxSize*2; ++i){
-            userList.add(new User("username" + i, "username" + i + "@localhost", new HashPassword("passw0rd")));
+            userList.add(new User("username" + i, "displayname" + i, "username" + i + "@localhost", new HashPassword("passw0rd")));
         }
 
 
