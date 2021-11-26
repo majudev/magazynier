@@ -3,6 +3,7 @@ package pl.zbiczagromada.Magazynier.item;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import pl.zbiczagromada.Magazynier.exceptions.EmptyPropertyException;
 import pl.zbiczagromada.Magazynier.itemgroup.ItemGroup;
 import pl.zbiczagromada.Magazynier.itemgroup.ItemGroupRepository;
 import pl.zbiczagromada.Magazynier.itemgroup.exceptions.NotEnoughCountedItemsInItemGroup;
@@ -45,26 +46,45 @@ public class ItemAPIEndpoint {
     }
 
     @PostMapping(
-            path = "/new/{itemGroupId}/{storageUnitId}"
+            path = "/new/{itemGroupId}/on/{storageUnitId}"
     )
     @Transactional
-    public Item addItem(@PathVariable("itemGroupId") Long itemGroupId, @PathVariable("storageUnitId") Long storageUnitId, @RequestBody(required = false) Item request, HttpSession session){
+    public Item addItem(@PathVariable("itemGroupId") Long itemGroupId, @PathVariable("storageUnitId") Long storageUnitId, @RequestBody(required = true) Item request, HttpSession session){
         User user = userCache.getUserFromSession(session);
         //if user has permissions
 
         ItemGroup itemGroup = itemGroupRepository.findById(itemGroupId).orElseThrow(() -> new ItemGroupNotFoundException(itemGroupId));
         StorageUnit storageUnit = storageUnitRepository.findById(storageUnitId).orElseThrow(() -> new StorageUnitNotFoundException(storageUnitId));
 
-        String mark = null;
-        String notes = null;
-        if(request != null){
-            mark = request.getMark();
-            notes = request.getNotes();
-        }
+        String mark = request.getMark();
+        String notes = request.getNotes();
+        if(mark == null || mark.isEmpty()) throw new EmptyPropertyException(List.of("mark"));
+        if(notes != null && notes.isEmpty()) notes = null;
+
 
         Item item = new Item(mark, itemGroup, storageUnit, notes);
 
         return itemRepository.saveAndFlush(item);
+    }
+
+    @PostMapping(
+            path = "/new/{itemGroupId}/on/{storageUnitId}/unmarked/{count}"
+    )
+    @Transactional
+    public List<Item> addItemUnmarked(@PathVariable("itemGroupId") Long itemGroupId, @PathVariable("storageUnitId") Long storageUnitId, @PathVariable("count") Long count, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        ItemGroup itemGroup = itemGroupRepository.findById(itemGroupId).orElseThrow(() -> new ItemGroupNotFoundException(itemGroupId));
+        StorageUnit storageUnit = storageUnitRepository.findById(storageUnitId).orElseThrow(() -> new StorageUnitNotFoundException(storageUnitId));
+
+        List<Item> items = new ArrayList<>();
+        for(Long i = 0L; i < count; ++i) {
+            Item item = new Item(null, itemGroup, storageUnit, null);
+            items.add(item);
+        }
+
+        return itemRepository.saveAllAndFlush(items);
     }
 
     @PutMapping(
@@ -105,13 +125,37 @@ public class ItemAPIEndpoint {
 
             if(item.getStorageUnitId() == storageUnitId && item.getMark() == null){
                 item.setStorageUnit(newStorageUnit);
-                //itemRepository.saveAndFlush(item);
 
                 --counter;
             }
         }
         itemGroupRepository.saveAndFlush(itemGroup);
         if(counter != 0) throw new NotEnoughCountedItemsInItemGroup(itemGroupId);
+    }
+
+    @PutMapping(
+            path = "/edit/{id}"
+    )
+    @Transactional
+    public Item editItem(@PathVariable Long id, @RequestBody Item request, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        String mark = request.getMark();
+        String notes = request.getNotes();
+
+        Item item = itemRepository.findById(id).orElseThrow(() -> new ItemNotFoundException(id));
+
+        if(mark != null){
+            if(mark.isEmpty()) throw new EmptyPropertyException(List.of("mark"));
+            item.setMark(mark);
+        }
+        if(notes != null){
+            if(notes.isEmpty()) notes = null;
+            item.setNotes(notes);
+        }
+
+        return itemRepository.saveAndFlush(item);
     }
 
     @DeleteMapping(
@@ -126,6 +170,35 @@ public class ItemAPIEndpoint {
 
         itemRepository.delete(item);
         itemRepository.flush();
+    }
+
+    @DeleteMapping(
+            path = "/delete/{itemGroupId}/unmarked/{count}/from/{storageUnitId}"
+    )
+    @Transactional(
+            rollbackOn = {
+                    ResponseStatusException.class,
+                    NotEnoughCountedItemsInItemGroup.class
+            }
+    )
+    public void deleteItemByItemGroup(@PathVariable("itemGroupId") Long itemGroupId, @PathVariable("storageUnitId") Long storageUnitId, @PathVariable("count") Long count, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        ItemGroup itemGroup = itemGroupRepository.findById(itemGroupId).orElseThrow(() -> new ItemGroupNotFoundException(itemGroupId));
+
+        Long counter = count;
+        for(Item item : itemGroup.getItems()){
+            if(counter == 0) break;
+
+            if(item.getStorageUnitId() == storageUnitId && item.getMark() == null){
+                itemRepository.delete(item);
+
+                --counter;
+            }
+        }
+        itemRepository.flush();
+        if(counter != 0) throw new NotEnoughCountedItemsInItemGroup(itemGroupId);
     }
 
     /*@GetMapping(

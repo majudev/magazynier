@@ -3,6 +3,7 @@ package pl.zbiczagromada.Magazynier.itemgroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pl.zbiczagromada.Magazynier.FieldProjector;
+import pl.zbiczagromada.Magazynier.exceptions.EmptyPropertyException;
 import pl.zbiczagromada.Magazynier.item.ItemRepository;
 import pl.zbiczagromada.Magazynier.user.User;
 import pl.zbiczagromada.Magazynier.user.UserCacheService;
@@ -14,6 +15,7 @@ import pl.zbiczagromada.Magazynier.itemgroup.exceptions.ItemGroupNotFoundExcepti
 
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +51,23 @@ public class ItemGroupAPIEndpoint {
     }
 
     @GetMapping(
+            path = "/get/grouped"
+    )
+    public List<ItemGrouping> getAllItemGroupsGrouped(HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        List<ItemGroup> itemGroups = itemGroupRepository.findAll();
+        List<ItemGrouping> itemGroupings = new ArrayList<>();
+
+        itemGroups.forEach((value) -> {
+            itemGroupings.add(ItemGrouping.createGroupingFromItemGroup(value));
+        });
+
+        return itemGroupings;
+    }
+
+    @GetMapping(
             path = "/get/{id}"
     )
     public ItemGroup getItemGroup(@PathVariable Long id, HttpSession session){
@@ -56,6 +75,31 @@ public class ItemGroupAPIEndpoint {
         //if user has permissions
 
         return itemGroupRepository.findById(id).orElseThrow(() -> new ItemGroupNotFoundException(id));
+    }
+
+    @GetMapping(
+            path = "/get/{id}/grouped"
+    )
+    public ItemGrouping getItemGroupGrouped(@PathVariable Long id, HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        ItemGroup itemGroup = itemGroupRepository.findById(id).orElseThrow(() -> new ItemGroupNotFoundException(id));
+        ItemGrouping itemGrouping = ItemGrouping.createGroupingFromItemGroup(itemGroup);
+
+        return itemGrouping;
+    }
+
+    @GetMapping(
+            path = "/meta"
+    )
+    public List<Map<String, Object>> getAllItemsGroupMeta(HttpSession session){
+        User user = userCache.getUserFromSession(session);
+        //if user has permissions
+
+        List<ItemGroup> itemGroup = itemGroupRepository.findAll();
+
+        return FieldProjector.projectList(itemGroup, slimResponseFields);
     }
 
     @GetMapping(
@@ -81,6 +125,9 @@ public class ItemGroupAPIEndpoint {
         String name = request.getName();
         String mark = request.getMark();
         if(name == null) throw new InvalidRequestException(List.of("name"));
+        if(name != null && name.isEmpty()) throw new InvalidRequestException(List.of("name"));
+
+        if(mark != null && mark.isEmpty()) mark = null;
 
         ItemGroup itemGroup = new ItemGroup(name, mark);
 
@@ -100,8 +147,14 @@ public class ItemGroupAPIEndpoint {
 
         ItemGroup itemGroup = itemGroupRepository.findById(id).orElseThrow(() -> new ItemGroupNotFoundException(id));
 
-        if(name != null) itemGroup.setName(name);
-        if(mark != null) itemGroup.setMark(mark);
+        if(name != null){
+            if(name.isEmpty()) throw new EmptyPropertyException(List.of("name"));
+            itemGroup.setName(name);
+        }
+        if(mark != null){
+            if(mark.isEmpty()) throw new EmptyPropertyException(List.of("mark"));
+            itemGroup.setMark(mark);
+        }
 
         return itemGroupRepository.saveAndFlush(itemGroup);
     }

@@ -1,7 +1,6 @@
 package pl.zbiczagromada.Magazynier.itemgroup;
 
 import lombok.Getter;
-import org.apache.commons.collections4.MapIterator;
 import pl.zbiczagromada.Magazynier.item.Item;
 import pl.zbiczagromada.Magazynier.storageunit.StorageUnit;
 
@@ -22,7 +21,9 @@ public class ItemGrouping {
 
     private final List<Item> individualItems;
 
-    private ItemGrouping(Long itemGroupId, String itemGroupName, String itemGroupMark, Long numberOfItems, Long numberOfCountedItems, Long numberOfIndividualItems, List<Item> individualItems) {
+    private final Map<Long, Long> countedItemsPerStorageUnit;
+
+    private ItemGrouping(Long itemGroupId, String itemGroupName, String itemGroupMark, Long numberOfItems, Long numberOfCountedItems, Long numberOfIndividualItems, List<Item> individualItems, Map<Long, Long> countedItemsPerStorageUnit) {
         this.itemGroupId = itemGroupId;
         this.itemGroupName = itemGroupName;
         this.itemGroupMark = itemGroupMark;
@@ -30,6 +31,7 @@ public class ItemGrouping {
         this.numberOfCountedItems = numberOfCountedItems;
         this.numberOfIndividualItems = numberOfIndividualItems;
         this.individualItems = individualItems;
+        this.countedItemsPerStorageUnit = countedItemsPerStorageUnit;
     }
 
     public static List<ItemGrouping> createGroupingFromStorageUnit(StorageUnit storageUnit){
@@ -52,7 +54,7 @@ public class ItemGrouping {
                 itemGroupMarks.put(item.getItemGroupId(), item.getItemGroup().getMark());
             }
 
-            if(item.getMark() != null || item.getNotes() != null) {
+            if(item.getMark() != null /*|| item.getNotes() != null*/) {
                 List<Item> individualItemsList = individualItemsByGroup.get(item.getItemGroupId());
                 individualItemsList.add(item);
                 individualItemsByGroup.put(item.getItemGroupId(), individualItemsList);
@@ -69,6 +71,8 @@ public class ItemGrouping {
             (key, value) -> {
                 Long countedItems = countedItemsByGroup.get(key);
                 List<Item> individualItems = individualItemsByGroup.get(key);
+                Map<Long, Long> countedItemsPerStorageUnit = new HashMap<>();
+                countedItemsPerStorageUnit.put(storageUnit.getId(), countedItems);
                 ItemGrouping itemGrouping = new ItemGrouping(
                         key,
                         value,
@@ -76,11 +80,43 @@ public class ItemGrouping {
                         countedItems + individualItems.size(),
                         countedItems,
                         (long) individualItems.size(),
-                        individualItems
-                );
+                        individualItems,
+                        countedItemsPerStorageUnit);
                 grouping.add(itemGrouping);
         });
 
         return grouping;
+    }
+
+    public static ItemGrouping createGroupingFromItemGroup(ItemGroup itemGroup){
+        List<Item> individualItems = new ArrayList<Item>();
+        Map<Long, Long> countedItemsPerStorageUnit = new HashMap<>();
+        Long countedItems = 0L;
+        Long itemGroupId = itemGroup.getId();
+        String itemGroupName = itemGroup.getName();
+        String itemGroupMark = itemGroup.getMark();
+
+        for(Item item : itemGroup.getItems()){
+            if(item.getMark() != null /*|| item.getNotes() != null*/) {
+                individualItems.add(item);
+            }else{
+                ++countedItems;
+                Long itemsInThisStorageUnit = countedItemsPerStorageUnit.get(item.getStorageUnitId());
+                if(itemsInThisStorageUnit == null) itemsInThisStorageUnit = 0L;
+                countedItemsPerStorageUnit.put(item.getStorageUnitId(), itemsInThisStorageUnit + 1);
+            }
+        }
+
+        ItemGrouping itemGrouping = new ItemGrouping(
+                itemGroupId,
+                itemGroupName,
+                itemGroupMark,
+                countedItems + individualItems.size(),
+                countedItems,
+                (long) individualItems.size(),
+                individualItems,
+                countedItemsPerStorageUnit);
+
+        return itemGrouping;
     }
 }
