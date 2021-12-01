@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Maju">
+    <title class="set-title">Magazynier</title>
+
+    <!-- jQuery & check if logged in -->
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/checklogin.js"></script>
+    
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    
+    <!-- Custom styles for this template -->
+    <link href="css/navbar-top.css" rel="stylesheet">
+    <link href="css/signin.css" rel="stylesheet">
+  </head>
+  <body>
+    
+<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand set-title inject-baseurl" href="index.html">Magazynier</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav me-auto mb-2 mb-md-0">
+        <li class="nav-item dropdown">
+          <a id="header-magazyny-entry" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Magazyny</a>
+          <div class="dropdown-menu" aria-labelledby="header-magazyny-entry">
+            <a id="warehouses_link" class="dropdown-item inject-baseurl" href="warehouses.html">Pokaż wszystkie</a>
+          </div>
+        </li>
+        <li class="nav-item dropdown append-storageunits">
+          <a id="header-przedmioty-entry" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Przedmioty</a>
+          <div class="dropdown-menu" aria-labelledby="header-przedmioty-entry">
+            <a id="itemgroups_link" class="dropdown-item inject-baseurl" href="itemgroups.html">Pokaż wszystkie</a>
+          </div>
+        </li>
+        <li class="nav-item enable-admin" style="display:none">
+          <a class="nav-link inject-baseurl" aria-current="page" href="admin.html">Panel administratora</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav mb-2 mb-md-0">
+        <li class="nav-item">
+          <a class="nav-link active inject-baseurl" aria-current="page" href="logout.html">Wyloguj się</a>
+        </li>
+      </ul>
+      <!--- <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form> --->
+    </div>
+  </div>
+</nav>
+
+<main class="container-fluid">
+  <div class="row" id="warehouses">    
+    <div id="new_warehouse" class="col-lg-4 col-sm-12">
+      <div class="p-2">
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-info d-flex justify-content-center bg-dark text-center text-white">
+            <h4 class="mb-1 mt-1">Dodaj nowy magazyn</h4>
+          </li>
+          <li class="list-group-item d-flex justify-content-center align-items-center" style="padding-bottom: 20%; padding-top: 20%">
+            <button id="new_warehouse_button" class="btn btn-dark btn-lg">
+              <!--<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-plus-square" viewBox="0 0 16 16">
+                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>-->
+              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
+              </svg>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- new warehouse -->
+<div class="modal fade" id="new_warehouse_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Dodaj nowy magazyn</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Nazwa magazynu: <input type="text" id="new_warehouse_name_input"></p>
+        <p>Opis/notatka (opcjonalnie): <input type="text" id="new_warehouse_description_input"></p>
+        <p>Lokalizacja (opcjonalnie): <input type="text" id="new_warehouse_location_input"></p>
+        <p id="new_warehouse_error_div" style="display: none; color: red"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>
+        <button id="save_warehouse_button" type="button" class="btn btn-dark">Dodaj</button>
+      </div>
+    </div>
+  </div>
+</div>
+    
+<!-- delete warehouse -->
+<div class="modal fade" id="delete_warehouse_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Usuń magazyn</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Czy chcesz usunąć <b id="delete_warehouse_div"></b>?</p>
+        <p>Tej operacji nie można cofnąć!</p>
+        <p id="delete_warehouse_error_div" style="display: none; color: red"></p>
+        <input type="hidden" id="delete_warehouse_id">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>
+        <button id="delete_warehouse_button" type="button" class="btn btn-danger">Usuń</button>
+      </div>
+    </div>
+  </div>
+</div>
+    
+<!-- edit warehouse -->
+<div class="modal fade" id="edit_warehouse_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edytuj właściwości magazynu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Nazwa magazynu: <input type="text" id="edit_warehouse_name_input"></p>
+        <p>Opis magazynu: <input type="text" id="edit_warehouse_description_input"></p>
+        <p>Lokalizacja magazynu: <input type="text" id="edit_warehouse_location_input"></p>
+        <input type="hidden" id="edit_warehouse_id_input">
+        <p id="edit_warehouse_error_div" style="display: none; color: red"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>
+        <button id="save_existing_warehouse_button" type="button" class="btn btn-dark">Zapisz</button>
+      </div>
+    </div>
+  </div>
+</div>
+    
+<!-- move storageunit -->
+<div class="modal fade" id="move_storageunit_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Przenieś jednostkę magazynową</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Nazwa jednostki: <b id="move_storageunit_name_div"></b></p>
+        <p>Aktualny magazyn: <b id="move_storageunit_warehouse_div"></b></p>
+        <p>Przenieś do: 
+          <select id="move_storageunit_new_warehouse_select">
+          </select></p>
+        <input type="hidden" id="move_storageunit_id_input">
+        <input type="hidden" id="move_storageunit_warehouseid_input">
+        <p id="move_storageunit_error_div" style="display: none; color: red"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>
+        <button id="move_storageunit_button" type="button" class="btn btn-dark">Przenieś</button>
+      </div>
+    </div>
+  </div>
+</div>
+    
+<!-- new storageunit -->
+<div class="modal fade" id="new_storageunit_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nowa jednostka magazynowa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Magazyn jednostki: <b id="new_storageunit_warehouse_div"></b></p>
+        <p>Nazwa jednostki magazynowej: <input type="text" id="new_storageunit_name_input"></p>
+        <p>Opis/notatka (opcjonalnie): <input type="text" id="new_storageunit_description_input"></p>
+        <p>Lokalizacja (opcjonalnie): <input type="text" id="new_storageunit_location_input"></p>
+        <p>Jednostka magazynowa reprezentuje sposób składowania przedmiotów - może nią być np. paleta lub regał</p>
+        <input type="hidden" id="new_storageunit_warehouseid_input">
+        <p id="new_storageunit_error_div" style="display: none; color: red"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>
+        <button id="save_storageunit_button" type="button" class="btn btn-dark">Zapisz</button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="js/header.js"></script>
+    <script src="js/warehouses.js"></script>
+
+  </body>
+</html>
