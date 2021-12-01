@@ -17,7 +17,7 @@ public class MagazynierApplication {
 		// Start SpringBoot
 		SpringApplication.run(MagazynierApplication.class, args);
 
-		// Terminate after 10 seconds if we just want to generate schema
+		// Terminate after fully loaded if we just want to generate schema
 		if(Arrays.asList(args).contains("spring.jpa.properties.javax.persistence.schema-generation.scripts.action=create")){
 			System.exit(0);
 		}
