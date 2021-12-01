@@ -29,3 +29,8 @@ dependencies {
 test {
 	useJUnitPlatform()
 }
+
+task generateSchema(type: JavaExec) {
+	classpath = files(bootJar.archiveFile.get().getAsFile());
+	args 'spring.jpa.properties.javax.persistence.schema-generation.scripts.action=create'
+}

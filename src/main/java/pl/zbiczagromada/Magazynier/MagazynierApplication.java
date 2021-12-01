@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.Arrays;
 import java.util.List;
 
 @SpringBootApplication
@@ -13,7 +14,13 @@ import java.util.List;
 public class MagazynierApplication {
 
 	public static void main(String[] args) {
+		// Start SpringBoot
 		SpringApplication.run(MagazynierApplication.class, args);
+
+		// Terminate after 10 seconds if we just want to generate schema
+		if(Arrays.asList(args).contains("spring.jpa.properties.javax.persistence.schema-generation.scripts.action=create")){
+			System.exit(0);
+		}
 	}
 
 	@GetMapping
