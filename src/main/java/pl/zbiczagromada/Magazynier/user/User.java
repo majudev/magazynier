@@ -63,7 +63,6 @@ public class User {
         this.email = email;
         this.password = password;
         this.activationCode = new ActivationCode(this);
-        this.removed = false;
     }
 
     protected User(){}
