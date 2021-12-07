@@ -7,4 +7,5 @@ import lombok.Setter;
 public class EditUserRequest {
     private String displayname;
     private String email;
+    private String permissionGroup;
 }

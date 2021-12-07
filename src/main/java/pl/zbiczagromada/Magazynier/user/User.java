@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import pl.zbiczagromada.Magazynier.user.activationcode.ActivationCode;
+import pl.zbiczagromada.Magazynier.user.forgotpasswordcode.ForgotPasswordCode;
 import pl.zbiczagromada.Magazynier.user.permissiongroups.PermissionGroup;
 
 import javax.persistence.*;
@@ -45,12 +47,29 @@ public class User {
     @Column
     private String permissionGroup;
 
+    @OneToOne(mappedBy = "user",
+    cascade = CascadeType.ALL)
+    @JsonIgnore
+    private ActivationCode activationCode;
+
+    @OneToMany(mappedBy = "user",
+    cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<ForgotPasswordCode> forgotPasswordCodes;
+
     public User(String username, String displayname, String email, HashPassword password) {
         this.username = username;
         this.displayname = displayname;
         this.email = email;
         this.password = password;
+        this.activationCode = new ActivationCode(this);
+        this.removed = false;
     }
 
     protected User(){}
+
+    public boolean getActive(){
+        if(activationCode == null) return false;
+        return !activationCode.isActive();
+    }
 }
