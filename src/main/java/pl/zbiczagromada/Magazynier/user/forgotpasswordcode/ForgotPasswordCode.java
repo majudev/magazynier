@@ -43,7 +43,6 @@ public class ForgotPasswordCode {
     private boolean active;
 
     @Column(nullable = false)
-    @CreatedDate
     private LocalDateTime issuedOn;
 
     @ManyToOne(cascade = {})
@@ -55,6 +54,7 @@ public class ForgotPasswordCode {
         this.code = this.generateCode();
         this.user = user;
         this.active = true;
+        this.issuedOn = LocalDateTime.now();
     }
 
     public void revoke(){

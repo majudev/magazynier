@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import pl.zbiczagromada.Magazynier.user.User;
 import pl.zbiczagromada.Magazynier.user.forgotpasswordcode.ForgotPasswordCode;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Service
 public class MailerService {
       @Value("${smtp.host}")
@@ -44,7 +47,7 @@ public class MailerService {
       public void sendAccountVerifyEmail(User user, String password){
             String greeting = "";
             if(user.getDisplayname() != null && !user.getDisplayname().isEmpty()) greeting = "Cześć " + user.getDisplayname() + "!<br>";
-            String link = baseUrl + "user/activate/" + user.getUsername() + "/code/" + user.getActivationCode().getCode();
+            String link = baseUrl + "usermanagement.html?action=activate&username=" + URLEncoder.encode(user.getUsername(), StandardCharsets.UTF_8) + "&code=" + URLEncoder.encode(user.getActivationCode().getCode(), StandardCharsets.UTF_8);
             Email email = EmailBuilder.startingBlank()
                     .to(user.getUsername(), user.getEmail())
                     .from("Magazynier", smtpFrom)
@@ -60,7 +63,7 @@ public class MailerService {
       public void sendForgotPasswordEmail(User user, ForgotPasswordCode code){
             String greeting = "";
             if(user.getDisplayname() != null && !user.getDisplayname().isEmpty()) greeting = "Cześć " + user.getDisplayname() + "!<br>";
-            String link = baseUrl + "user/forgotpassword/" + user.getUsername() + "/reset/" + code.getCode();
+            String link = baseUrl + "usermanagement.html?action=resetpassword&code=" + URLEncoder.encode(code.getCode(), StandardCharsets.UTF_8);
             Email email = EmailBuilder.startingBlank()
                     .to(user.getUsername(), user.getEmail())
                     .from("Magazynier", smtpFrom)

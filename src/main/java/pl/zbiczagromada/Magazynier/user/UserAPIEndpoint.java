@@ -46,7 +46,7 @@ public class UserAPIEndpoint {
         this.forgotPasswordCodeRepository = forgotPasswordCodeRepository;
 
         userPermissionService.registerPermission("user.self.changepassword", UserPermissionService.AccessLevel.ALLOW);
-        userPermissionService.registerPermission("user.self.forgotpassword", UserPermissionService.AccessLevel.ALLOW);
+        userPermissionService.registerPermission("user.self.resetpassword", UserPermissionService.AccessLevel.ALLOW);
         userPermissionService.registerPermission("user.self.edit", UserPermissionService.AccessLevel.ALLOW);
         userPermissionService.registerPermission("user.self.permissiongroup.assign", UserPermissionService.AccessLevel.DENY);
         userPermissionService.registerPermission("user.register", UserPermissionService.AccessLevel.DENY);
@@ -155,7 +155,7 @@ public class UserAPIEndpoint {
         session.invalidate();
     }
 
-    @GetMapping(
+    @PostMapping(
             path = "/forgotpassword/{username}"
     )
     @Transactional
@@ -171,7 +171,7 @@ public class UserAPIEndpoint {
         mailerService.sendForgotPasswordEmail(user, code);
     }
 
-    @PutMapping(
+    @PostMapping(
             path = "/forgotpassword/{code}/reset/{newpassword}"
     )
     @Transactional
