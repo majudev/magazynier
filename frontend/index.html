@@ -70,7 +70,7 @@
             <div>
               <b>Imię i nazwisko:</b> <div id="displayname_div" style="display: inline">nie ustawiono</div>
             </div>
-            <button id="edit_displayname_button" type="button" class="btn btn-dark btn-sm">Edytuj</button>
+            <button id="edit_displayname_button" type="button" class="btn btn-dark btn-sm" disabled>Edytuj</button>
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <div>
@@ -81,13 +81,13 @@
             <div>
               <b>E-mail:</b> <div id="email_div" style="display: inline"></div>
             </div>
-            <button id="edit_email_button" type="button" class="btn btn-dark btn-sm">Edytuj</button>
+            <button id="edit_email_button" type="button" class="btn btn-dark btn-sm" disabled>Edytuj</button>
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <div>
               <b>Grupa uprawnień:</b> <div id="permission_group_div" style="display: inline">domyślna</div>
             </div>
-            <button id="edit_password_button" type="button" class="btn btn-dark btn-sm">Zmień hasło</button>
+            <button id="edit_password_button" type="button" class="btn btn-dark btn-sm" disabled>Zmień hasło</button>
           </li>
         </ul>
       </div>
@@ -96,8 +96,33 @@
     <div class="col-lg-6 col-sm-12">
       <div class="p-5">
         <ul class="list-group">
-          <li class="list-group-item list-group-item-info d-flex justify-content-center bg-dark text-center text-white">
+          <li id="toolbox_header" class="list-group-item list-group-item-info d-flex justify-content-center bg-dark text-center text-white">
             <h4 class="mb-1 mt-1">Narzędzia</h4>
+          </li>
+          <li id="user_management_panel" class="list-group-item" style="display:none">
+            <table class="table">
+              <thead>
+                <td>Nazwa wyświetlana</td>
+                <td>Nazwa użytkownika</td>
+                <td>E-mail</td>
+                <td>Grupa uprawnień</td>
+                <td></td>
+              </thead>
+              <tbody id="user_list_body">
+              </tbody>
+            </table>
+          </li>
+          <li id="user_register_panel" class="list-group-item" style="display:none">
+            <p class="text-center"><b>Zarejestruj nowego użytkownika</b></p>
+            Nazwa użytkownika (nie da się jej potem zmienić): <input id="new_user_username_input" type="text"><br>
+            Nazwa wyświetlana (np. imię, ksywka): <input id="new_user_displayname_input" type="text"><br>
+            Hasło: <input id="new_user_password_input" type="password"><br>
+            Email (tu przyjdzie potwierdzenie rejestracji): <input id="new_user_email_input" type="email"><br>
+            Grupa uprawnień: <select id="new_user_permissiongroup_select">
+            <option value="" selected>Domyślna</option>
+            </select><br>
+            <button class="btn btn-dark" onclick="process_register()">Stwórz użytkownika</button>
+            <p id="new_user_status" style="display:none">Sukces!</p>
           </li>
           <li class="list-group-item">
             <b>Prace trwają.</b> Aktualnie niedostępne.

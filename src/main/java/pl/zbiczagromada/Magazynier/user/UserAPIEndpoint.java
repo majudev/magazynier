@@ -50,12 +50,20 @@ public class UserAPIEndpoint {
         userPermissionService.registerPermission("user.self.edit", UserPermissionService.AccessLevel.ALLOW);
         userPermissionService.registerPermission("user.self.permissiongroup.assign", UserPermissionService.AccessLevel.DENY);
         userPermissionService.registerPermission("user.register", UserPermissionService.AccessLevel.DENY);
+        userPermissionService.registerPermission("user.list", UserPermissionService.AccessLevel.DENY);
     }
 
     @GetMapping
     public User getInfo(HttpSession session) {
+        return userCache.getUserFromSession(session);
+    }
+
+    @GetMapping(path = "/list")
+    public List<User> getAll(HttpSession session) {
         User user = userCache.getUserFromSession(session);
-        return user;
+        userPermissionService.checkUserAllowed("user.list", user);
+
+        return userCache.getAll();
     }
 
     @PostMapping(
@@ -94,10 +102,14 @@ public class UserAPIEndpoint {
 
         if(request.getDisplayname() != null && !request.getDisplayname().isEmpty()) user.setDisplayname(request.getDisplayname());
         if(request.getEmail() != null /*&& validate email*/) user.setEmail(request.getEmail());
-        if(request.getPermissionGroup() != null && !request.getPermissionGroup().isEmpty()){
+        if(request.getPermissionGroup() != null){
             userPermissionService.checkUserAllowed("user.self.permissiongroup.assign", user);
-            if(permissionGroupRepository.existsByGroupName(request.getPermissionGroup())) throw new PermissionGroupNotFoundException(request.getPermissionGroup());
-            user.setPermissionGroup(request.getPermissionGroup());
+            if(request.getPermissionGroup().isEmpty()){
+                user.setPermissionGroup(null);
+            }else{
+                if (permissionGroupRepository.existsByGroupName(request.getPermissionGroup())) throw new PermissionGroupNotFoundException(request.getPermissionGroup());
+                user.setPermissionGroup(request.getPermissionGroup());
+            }
             mailerService.sendPermissionGroupChangedEmail(user);
         }
 
@@ -111,7 +123,7 @@ public class UserAPIEndpoint {
     @Transactional
     public void register(@RequestBody RegisterRequest request, HttpSession session) {
         User user = userCache.getUserFromSession(session);
-        //userPermissionService.checkUserAllowed("user.register", user);
+        userPermissionService.checkUserAllowed("user.register", user);
 
         /*final Long userId = (Long) session.getAttribute("id");
         if(userId != null) throw new UserAlreadyLoggedInException(request.getUsername());*/
@@ -125,7 +137,13 @@ public class UserAPIEndpoint {
         if(repo.existsByUsername(request.getUsername())) throw new UsernameAlreadyTakenException(request.getUsername());
         if(repo.existsByEmail(request.getEmail())) throw new EmailAlreadyTakenException(request.getEmail());
 
-        User newUser = new User(request.getUsername(), request.getDisplayname(), request.getEmail(), new HashPassword(request.getPassword()));
+        String permissionGroup = null;
+        if(request.getPermissionGroup() != null && !request.getPermissionGroup().isEmpty()) permissionGroup = request.getPermissionGroup();
+
+        String displayname = null;
+        if(request.getDisplayname() != null && !request.getDisplayname().isEmpty()) displayname = request.getDisplayname();
+
+        User newUser = new User(request.getUsername(), displayname, request.getEmail(), new HashPassword(request.getPassword()), permissionGroup);
         repo.saveAndFlush(newUser);
 
         mailerService.sendAccountVerifyEmail(newUser, request.getPassword());
@@ -208,12 +226,18 @@ public class UserAPIEndpoint {
         repo.saveAndFlush(user);
     }
 
+    @GetMapping(path = "/permission/check/{permission}")
+    public UserPermissionService.AccessLevel getPermission(@PathVariable("permission") String permission, HttpSession session) {
+        User user = userCache.getUserFromSession(session);
+        boolean allowed = userPermissionService.isUserAllowed(permission, user);
+        if(allowed) return UserPermissionService.AccessLevel.ALLOW;
+        else return UserPermissionService.AccessLevel.DENY;
+    }
+
     @PostMapping(
             path = "/logout"
     )
     public void logout(HttpSession session) {
-        User user = userCache.getUserFromSession(session);
-
         session.invalidate();
     }
 }

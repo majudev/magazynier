@@ -12,6 +12,7 @@ import pl.zbiczagromada.Magazynier.user.exceptions.UserNotLoggedInException;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -59,6 +60,10 @@ public class UserCacheService {
             e.printStackTrace();
             return Optional.empty();
         }
+    }
+
+    public List<User> getAll(){
+        return repo.findAll();
     }
 
     private ReentrantLock cacheMutex = new ReentrantLock();

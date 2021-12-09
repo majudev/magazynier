@@ -1,5 +1,79 @@
 $(document).ready(function(){
 	onReady();
+	
+	$.ajax({
+		url: apiUrl + "/user/permission/check/user.self.edit",
+		method: "GET"
+	}).done(function(data, textStatus){
+		if(data == "ALLOW"){
+			$("#edit_displayname_button").attr('disabled', false);
+			$("#edit_email_button").attr('disabled', false);
+		}
+	}).fail(function(xhr, textStatus){
+		alert("Błąd krytyczny - strona zostanie przeładowana");
+		location.reload();
+	});
+	
+	$.ajax({
+		url: apiUrl + "/user/permission/check/user.self.changepassword",
+		method: "GET"
+	}).done(function(data, textStatus){
+		if(data == "ALLOW"){
+			$("#edit_password_button").attr('disabled', false);
+		}
+	}).fail(function(xhr, textStatus){
+		alert("Błąd krytyczny - strona zostanie przeładowana");
+		location.reload();
+	});
+	
+	$.ajax({
+		url: apiUrl + "/user/permission/check/user.list",
+		method: "GET"
+	}).done(function(data, textStatus){
+		if(data == "ALLOW"){
+			$("#user_management_panel").show();
+			refreshUserList();
+		}
+	}).fail(function(xhr, textStatus){
+		alert("Błąd krytyczny - strona zostanie przeładowana");
+		location.reload();
+	});
+	
+	$.ajax({
+		url: apiUrl + "/user/permission/check/user.register",
+		method: "GET"
+	}).done(function(data, textStatus){
+		if(data == "ALLOW"){
+			$.ajax({
+				url: apiUrl + "/user/permission/check/permissiongroup.list",
+				method: "GET"
+			}).done(function(data, textStatus){
+				if(data == "ALLOW"){
+					$("#user_register_panel").show();
+			
+					$.ajax({
+						url: apiUrl + "/permissiongroup/list",
+						method: "GET",
+						contentType: "application/json"
+					}).done(function(data, textStatus){
+						for(var group of data){
+							$("#new_user_permissiongroup_select").prepend('<option value="' + group.groupName + '">' + group.groupName + '</option>');
+						}
+						clearRegistrationForm();
+					}).fail(function(xhr, textStatus){
+						alert("Błąd krytyczny - strona zostanie przeładowana");
+						location.reload();
+					});
+				}
+			}).fail(function(xhr, textStatus){
+				alert("Błąd krytyczny - strona zostanie przeładowana");
+				location.reload();
+			});
+		}
+	}).fail(function(xhr, textStatus){
+		alert("Błąd krytyczny - strona zostanie przeładowana");
+		location.reload();
+	});
 });
 
 function onReady(){
@@ -109,3 +183,76 @@ $("#save_password_button").click(function(){
 		});
 	}
 });
+
+function refreshUserList(){
+	$.ajax({
+		url: apiUrl + "/user/list",
+		method: "GET",
+		contentType: "application/json"
+	}).done(function(data, textStatus){
+		$("#user_list_body").empty();
+		for(var user of data){
+			var displayname = '<i>brak</i>';
+			if(user.displayname != null) displayname = user.displayname;
+			var email = user.email;
+			if(!user.active) email += ' <i>(niepotwierdzony)</i>';
+			$("#user_list_body").append('<tr><td>' + displayname + '</td><td>' + user.username + '</td><td>' + email + '</td><td>' + user.permissionGroup + '</td><td>-</td></tr>');
+		}
+	}).fail(function(xhr, textStatus){
+		alert("Błąd krytyczny - strona zostanie przeładowana");
+		location.reload();
+	});
+}
+
+function clearRegistrationForm(){
+	$("#new_user_username_input").val('');
+	$("#new_user_displayname_input").val('');
+	$("#new_user_password_input").val('');
+	$("#new_user_email_input").val('');
+	$("#new_user_permissiongroup_select").val('');
+}
+
+function process_register(){
+	var username = $("#new_user_username_input").val();
+	var displayname = $("#new_user_displayname_input").val();
+	var password = $("#new_user_password_input").val();
+	var email = $("#new_user_email_input").val();
+	var permissiongroup = $("#new_user_permissiongroup_select").val();
+	
+	if(username == null || username == ""){
+		$("#new_user_status").css('color', 'red');
+		$("#new_user_status").text('Błąd: nazwa użytkownika nie może być pusta');
+		$("#new_user_status").show();
+	}else if(password == null || password == ""){
+		$("#new_user_status").css('color', 'red');
+		$("#new_user_status").text('Błąd: hasło nie może być puste');
+		$("#new_user_status").show();
+	}else if(email == null || email == ""){
+		$("#new_user_status").css('color', 'red');
+		$("#new_user_status").text('Błąd: email nie może być pusty');
+		$("#new_user_status").show();
+	}else{
+		$.ajax({
+			url: apiUrl + "/user/register",
+			method: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({
+				username: username,
+				displayname: displayname,
+				password: password,
+				email: email,
+				permissionGroup: permissiongroup
+			})
+		}).done(function(data, textStatus){
+			$("#new_user_status").css('color', 'green');
+			$("#new_user_status").text('Dodano użytkownika!');
+			$("#new_user_status").show();
+			clearRegistrationForm();
+			refreshUserList();
+		}).fail(function(xhr, textStatus){
+			$("#new_user_status").css('color', 'red');
+			$("#new_user_status").text('Błąd: ' + xhr.responseJSON.message);
+			$("#new_user_status").show();
+		});
+	}
+}

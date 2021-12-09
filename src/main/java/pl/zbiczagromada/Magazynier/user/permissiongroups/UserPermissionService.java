@@ -65,6 +65,7 @@ public class UserPermissionService {
 
         }
         if(map.get(permission) != AccessLevel.ALLOW) throw new InsufficientPermissionsException(user.getUsername());
+        //if(!this.isUserAllowed(permission, user)) throw new InsufficientPermissionsException(user.getUsername());
     }
 
     private Map<String, AccessLevel> getGroupFromCache(String groupName) throws PermissionGroupNotFoundException {
@@ -99,7 +100,7 @@ public class UserPermissionService {
     }
 
     private Map<String, AccessLevel> mapFromPermissionGroup(String groupName) throws PermissionGroupNotFoundException{
-        if(groupName == "admin") return this.getAdmin();
+        if(groupName.equals("admin")) return this.getAdmin();
 
         PermissionGroup permissionGroup = permissionGroupRepository.findByGroupName(groupName).orElseThrow(() -> new PermissionGroupNotFoundException(groupName));
         return permissionGroup.getPermissionsList();

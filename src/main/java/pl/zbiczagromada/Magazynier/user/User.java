@@ -57,11 +57,12 @@ public class User {
     @JsonIgnore
     private List<ForgotPasswordCode> forgotPasswordCodes;
 
-    public User(String username, String displayname, String email, HashPassword password) {
+    public User(String username, String displayname, String email, HashPassword password, String permissionGroup) {
         this.username = username;
         this.displayname = displayname;
         this.email = email;
         this.password = password;
+        this.permissionGroup = permissionGroup;
         this.activationCode = new ActivationCode(this);
     }
 
