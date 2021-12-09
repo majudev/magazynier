@@ -96,7 +96,7 @@ public class UserAPIEndpoint {
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
     @Transactional
-    public User edit(@RequestBody EditUserRequest request, HttpSession session){
+    public User editSelf(@RequestBody EditUserRequest request, HttpSession session){
         User user = userCache.getUserFromSession(session);
         userPermissionService.checkUserAllowed("user.self.edit", user);
 
@@ -104,6 +104,38 @@ public class UserAPIEndpoint {
         if(request.getEmail() != null /*&& validate email*/) user.setEmail(request.getEmail());
         if(request.getPermissionGroup() != null){
             userPermissionService.checkUserAllowed("user.self.permissiongroup.assign", user);
+            if(request.getPermissionGroup().isEmpty()){
+                user.setPermissionGroup(null);
+            }else{
+                if (permissionGroupRepository.existsByGroupName(request.getPermissionGroup())) throw new PermissionGroupNotFoundException(request.getPermissionGroup());
+                user.setPermissionGroup(request.getPermissionGroup());
+            }
+            mailerService.sendPermissionGroupChangedEmail(user);
+        }
+
+        return repo.saveAndFlush(user);
+    }
+
+    @PutMapping(
+            path = "/edit/{username}",
+            consumes = {MediaType.APPLICATION_JSON_VALUE}
+    )
+    @Transactional
+    public User edit(@PathVariable("username") String username, @RequestBody EditUserRequest request, HttpSession session){
+        User sessionUser = userCache.getUserFromSession(session);
+        if(!userPermissionService.isUserAllowed("user.edit", sessionUser)){
+            userPermissionService.checkUserAllowed("user.username=" + username + ".edit", sessionUser);
+        }
+
+        User user = userCache.getUserByUsername(username).orElseThrow(() -> new UserNotActiveException(username));
+
+        if(request.getDisplayname() != null && !request.getDisplayname().isEmpty()) user.setDisplayname(request.getDisplayname());
+        if(request.getEmail() != null /*&& validate email*/) user.setEmail(request.getEmail());
+        if(request.getPermissionGroup() != null){
+            if(!userPermissionService.isUserAllowed("user.permissiongroup.assign", sessionUser)){
+                userPermissionService.checkUserAllowed("user.username=" + username + ".permissiongroup.assign", sessionUser);
+            }
+
             if(request.getPermissionGroup().isEmpty()){
                 user.setPermissionGroup(null);
             }else{
@@ -232,6 +264,37 @@ public class UserAPIEndpoint {
         boolean allowed = userPermissionService.isUserAllowed(permission, user);
         if(allowed) return UserPermissionService.AccessLevel.ALLOW;
         else return UserPermissionService.AccessLevel.DENY;
+    }
+
+    @DeleteMapping(
+            path = "/delete/{username}"
+    )
+    @Transactional
+    public User delete(@PathVariable("username") String username, HttpSession session){
+        User sessionUser = userCache.getUserFromSession(session);
+        if(!userPermissionService.isUserAllowed("user.delete", sessionUser)){
+            userPermissionService.checkUserAllowed("user.username=" + username + ".delete", sessionUser);
+        }
+
+        User user = userCache.getUserByUsername(username).orElseThrow(() -> new UserNotActiveException(username));
+
+        if(request.getDisplayname() != null && !request.getDisplayname().isEmpty()) user.setDisplayname(request.getDisplayname());
+        if(request.getEmail() != null /*&& validate email*/) user.setEmail(request.getEmail());
+        if(request.getPermissionGroup() != null){
+            if(!userPermissionService.isUserAllowed("user.permissiongroup.assign", sessionUser)){
+                userPermissionService.checkUserAllowed("user.username=" + username + ".permissiongroup.assign", sessionUser);
+            }
+
+            if(request.getPermissionGroup().isEmpty()){
+                user.setPermissionGroup(null);
+            }else{
+                if (permissionGroupRepository.existsByGroupName(request.getPermissionGroup())) throw new PermissionGroupNotFoundException(request.getPermissionGroup());
+                user.setPermissionGroup(request.getPermissionGroup());
+            }
+            mailerService.sendPermissionGroupChangedEmail(user);
+        }
+
+        return repo.saveAndFlush(user);
     }
 
     @PostMapping(
