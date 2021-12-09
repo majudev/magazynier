@@ -62,10 +62,6 @@ public class UserCacheService {
         }
     }
 
-    public List<User> getAll(){
-        return repo.findAll();
-    }
-
     private ReentrantLock cacheMutex = new ReentrantLock();
     private Optional<User> getUserByObject(Object o) throws RuntimeException {
         init();

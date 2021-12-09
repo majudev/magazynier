@@ -1,3 +1,6 @@
+var userEditAllowed = false;
+var userDeleteAllowed = false;
+
 $(document).ready(function(){
 	onReady();
 	
@@ -32,7 +35,25 @@ $(document).ready(function(){
 	}).done(function(data, textStatus){
 		if(data == "ALLOW"){
 			$("#user_management_panel").show();
-			refreshUserList();
+			
+			$.ajax({
+				url: apiUrl + "/user/permission/check/user.edit",
+				method: "GET"
+			}).done(function(data, textStatus){
+				if(data == "ALLOW") userEditAllowed = true;
+				
+				$.ajax({
+					url: apiUrl + "/user/permission/check/user.delete",
+					method: "GET"
+				}).done(function(data, textStatus){
+					if(data == "ALLOW") userDeleteAllowed = true;
+					refreshUserList();
+				}).fail(function(xhr, textStatus){
+					refreshUserList();
+				});
+			}).fail(function(xhr, textStatus){
+				refreshUserList();
+			});
 		}
 	}).fail(function(xhr, textStatus){
 		alert("Błąd krytyczny - strona zostanie przeładowana");
@@ -57,7 +78,7 @@ $(document).ready(function(){
 						contentType: "application/json"
 					}).done(function(data, textStatus){
 						for(var group of data){
-							$("#new_user_permissiongroup_select").prepend('<option value="' + group.groupName + '">' + group.groupName + '</option>');
+							$(".permissiongroup_select").prepend('<option value="' + group.groupName + '">' + group.groupName + '</option>');
 						}
 						clearRegistrationForm();
 					}).fail(function(xhr, textStatus){
@@ -194,9 +215,38 @@ function refreshUserList(){
 		for(var user of data){
 			var displayname = '<i>brak</i>';
 			if(user.displayname != null) displayname = user.displayname;
+			
 			var email = user.email;
 			if(!user.active) email += ' <i>(niepotwierdzony)</i>';
-			$("#user_list_body").append('<tr><td>' + displayname + '</td><td>' + user.username + '</td><td>' + email + '</td><td>' + user.permissionGroup + '</td><td>-</td></tr>');
+			
+			var permissiongroup = 'Domyślna';
+			if(user.permissionGroup != null) permissiongroup = user.permissionGroup;
+			
+			var editbutton = '<button id="userlist_edit_' + user.username + '" class="btn btn-sm btn-dark">Edytuj</button>';
+			if(!userEditAllowed) editbutton = '';
+			
+			var deletebutton = '<button id="userlist_delete_' + user.username + '" class="btn btn-sm btn-danger">Usuń</button>';
+			if(!userDeleteAllowed) deletebutton = '';
+			
+			$("#user_list_body").append('<tr><td>' + displayname + '</td><td>' + user.username + '</td><td>' + email + '</td><td>' + permissiongroup + '</td><td>' + editbutton + ' ' + deletebutton + '</td></tr>');
+			
+			$("#userlist_edit_" + user.username).attr('username', user.username);
+			$("#userlist_edit_" + user.username).attr('displayname', (user.displayname == null) ? '' : user.displayname);
+			$("#userlist_edit_" + user.username).attr('email', user.email);
+			$("#userlist_edit_" + user.username).attr('permissiongroup', permissiongroup);
+			$("#userlist_edit_" + user.username).click(function(){
+				$("#edit_user_displayname_input").val($(this).attr('displayname'));
+				$("#edit_user_username_div").text($(this).attr('username'));
+				$("#edit_user_email_input").val($(this).attr('email'));
+				$("#edit_user_permissiongroup_select").val(($(this).attr('permissiongroup') == "Domyślna") ? '' : $(this).attr('permissiongroup') );
+				$("#edit_user_modal").modal('show');
+			});
+			
+			$("#userlist_delete_" + user.username).attr('username', user.username);
+			$("#userlist_delete_" + user.username).click(function(){
+				$("#delete_user_username_div").text($(this).attr('username'));
+				$("#delete_user_modal").modal('show');
+			});
 		}
 	}).fail(function(xhr, textStatus){
 		alert("Błąd krytyczny - strona zostanie przeładowana");
@@ -256,3 +306,51 @@ function process_register(){
 		});
 	}
 }
+
+$("#save_user_button").click(function(){
+	var username = $("#edit_user_username_div").text();
+	var displayname = $("#edit_user_displayname_input").val();
+	var email = $("#edit_user_email_input").val();
+	var permissiongroup = $("#edit_user_permissiongroup_select").val();
+	
+	if(email == null || email == ""){
+		$("#edit_user_error_div").text('Błąd: email nie może być pusty');
+		$("#edit_user_error_div").show();
+	}else{
+		$.ajax({
+			url: apiUrl + "/user/edit/" + username,
+			method: "PUT",
+			contentType: "application/json",
+			data: JSON.stringify({
+				displayname: displayname,
+				email: email,
+				permissionGroup: permissiongroup
+			})
+		}).done(function(data, textStatus){
+			refreshUserList();
+			$("#edit_user_modal").modal('hide');
+		}).fail(function(xhr, textStatus){
+			$("#new_user_status").css('color', 'red');
+			$("#new_user_status").text('Błąd: ' + xhr.responseJSON.message);
+			$("#new_user_status").show();
+		});
+	}
+});
+
+$("#delete_user_button").click(function(){
+	if($("#delete_user_username_div").text() == user.username){
+		$("#delete_user_error_div").text("Błąd: Nie możesz usunąć z systemu samego siebie!");
+		$("#delete_user_error_div").show();
+	}else{
+		$.ajax({
+			url: apiUrl + "/user/delete/" + $("#delete_user_username_div").text(),
+			method: "DELETE"
+		}).done(function(data, textStatus){
+			refreshUserList();
+			$("#delete_user_modal").modal('hide');
+		}).fail(function(xhr, textStatus){
+			alert("Błąd krytyczny - strona zostanie przeładowana");
+			location.reload();
+		});
+	}
+});

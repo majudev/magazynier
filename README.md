@@ -11,6 +11,7 @@
   * [Debian](#debian)
   * [Docker](#docker)
   * [SaaS](#saas)
+* [Konfiguracja](#konfiguracja)
 * [Demo](#demo)
 
 ## Czym jest Magazynier?
@@ -64,6 +65,9 @@ Na razie brak.
 
 ### SaaS
 Coming soon.
+
+## Konfiguracja
+Na razie brak.
 
 ## Demo
 Wersję demo aplikacji można zobaczyć pod adresem _TODO_.

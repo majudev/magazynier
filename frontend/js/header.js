@@ -42,7 +42,7 @@ $(document).ready(function(){
 function onReadyHeader(){
 	if(user != null){
 		if(user.permissionGroup == "admin"){
-			$(".enable-admin").show();
+			//$(".enable-admin").show();
 		}
 	}else setTimeout(onReadyHeader, 50);
 }

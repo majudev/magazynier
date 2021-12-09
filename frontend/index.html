@@ -118,7 +118,7 @@
             Nazwa wyświetlana (np. imię, ksywka): <input id="new_user_displayname_input" type="text"><br>
             Hasło: <input id="new_user_password_input" type="password"><br>
             Email (tu przyjdzie potwierdzenie rejestracji): <input id="new_user_email_input" type="email"><br>
-            Grupa uprawnień: <select id="new_user_permissiongroup_select">
+            Grupa uprawnień: <select id="new_user_permissiongroup_select" class="permissiongroup_select">
             <option value="" selected>Domyślna</option>
             </select><br>
             <button class="btn btn-dark" onclick="process_register()">Stwórz użytkownika</button>
@@ -157,6 +157,7 @@
   </div>
 </div>
     
+<!-- edit email -->
 <div class="modal fade" id="edit_email_modal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -178,6 +179,7 @@
   </div>
 </div>
     
+<!-- edit password -->
 <div class="modal fade" id="edit_password_modal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -195,6 +197,51 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>
         <button id="save_password_button" type="button" class="btn btn-dark">Zmień</button>
+      </div>
+    </div>
+  </div>
+</div>
+    
+<!-- edit user -->
+<div class="modal fade" id="edit_user_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edytuj użytkownika</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Imię i nazwisko: <input type="text" id="edit_user_displayname_input"></p>
+        <p>Nazwa użytkownika: <b id="edit_user_username_div"></b></p>
+        <p>Email: <input type="email" id="edit_user_email_input"></p>
+        <p>Grupa uprawnień: <select id="edit_user_permissiongroup_select" class="permissiongroup_select">
+          <option value="" selected>Domyślna</option>
+        </select></p>
+        <p id="edit_user_error_div" style="display: none; color: red"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>
+        <button id="save_user_button" type="button" class="btn btn-dark">Zapisz</button>
+      </div>
+    </div>
+  </div>
+</div>
+    
+<!-- delete user -->
+<div class="modal fade" id="delete_user_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Usuń użytkownika</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Czy na pewno chcesz usunąć <b id="delete_user_username_div"></b> z systemu? Tej operacji nie można cofnąć.</p>
+        <p id="delete_user_error_div" style="display: none; color: red"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>
+        <button id="delete_user_button" type="button" class="btn btn-danger">Usuń</button>
       </div>
     </div>
   </div>

@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'pl.zbiczagromada'
-version = '0.0.1-ALPHA'
+version = '0.1.0-ALPHA'
 sourceCompatibility = '11'
 
 repositories {
