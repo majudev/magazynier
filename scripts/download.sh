@@ -18,6 +18,6 @@ elif [[ $choice -le 0 ]]; then
 	echo "Invalid choice."
 	exit -1
 fi
-URL="https://github.com/majudev/magazynier/releases/Magazynier-${VERSIONS[$((choice-1))]}.zip"
-echo $URL
-
+URL="https://github.com/majudev/magazynier/releases/download/${VERSIONS[$((choice-1))]}/Magazynier-${VERSIONS[$((choice-1))]}.zip"
+wget $URL
+unzip Magazynier-${VERSIONS[$((choice-1))]}.zip
