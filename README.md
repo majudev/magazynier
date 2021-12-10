@@ -54,161 +54,60 @@ przypisywać przedmioty do definiowalnych grup, np _obóz_, _34 KDW_, ale też
 _skrzynia 4_ czy _uszkodzone_.
 
 ## Instalacja
-### Dla noobów
-Nie jesteś _"techniczny"_? Patrz opcja "SaaS".
 
-### Debian
-_Ta część poradnika może być nieaktualna._
+Aktualnie wspierana jest jedynie instalacja przez Dockera. Aby zobaczyć
+starą wersję tej instrukcji, stworzoną dla systemu Debian, otwórz plik
+[INSTALL-Debian.md](INSTALL-Debian.md).
 
-Zależności:
-- MariaDB 10.3+
-- OpenJDK 11+
-- Nginx (lub inny serwer WWW serwujący statyczne strony)
-- Redis
-- Serwer SMTP (lokalny lub zdalny, może być np. GMail)
+### Instalacja Dockera
 
-Najlepiej instalować na dedykowanej VM-ce lub w kontenerze. Czysty system
-w każdym razie.
-
-Instalacja zależności:
+### Budowanie kontenera
+Klonujemy repozytorium ze skryptami dla Dockera, a następnie
+budujemy obraz dockera.
 ```
-sudo apt install mariadb-server-10.5 mariadb-client-10.5 openjdk-11-jre nginx-light redis-server wget exim4 unzip
+git clone https://github.com/majudev/magazynier-docker.git
+cd magazynier-docker
+sudo docker build -t majudev/magazynier:0.1.1-ALPHA .
 ```
+Po wpisaniu `sudo docker images` na liście powinien pojawić się nasz
+kontener.
 
-Teraz trzeba pobrać odpowiednią paczkę ZIP ze
-[strony wydań](https://github.com/majudev/magazynier/releases)
+Do zamontowania kontenera potrzebny będzie katalog, w którym będziemy
+trzymać konfigurację oraz dane systemu. Musimy też wybrać port, na którym
+będzie dostępny interfejs.
 
-Zabezpieczamy serwer MySQL komendą `sudo mysql_secure_installation`. Tworzymy
-bazę danych, użytkownika i hasło:
+Uruchamiamy kontener komendą:
 ```
-CREATE DATABASE magazynier;
-CREATE USER 'magazynier'@'localhost' IDENTIFIED BY 'magazynier';
-GRANT ALL PRIVILEGES ON magazynier.* TO 'magazynier'@'localhost';
-FLUSH PRIVILEGES;
+sudo docker run \
+    --name="magazynier" \          # nazwa kontenera
+    -p 127.0.0.1:2233:80/tcp \     # system dostępny na localhost:2233
+    -v /tmp/data:/data \           # dane systemu w /tmp/data
+    majudev/magazynier:0.1.1-ALPHA # nazwa obrazu dockera
 ```
-Oczywiście można wybrać inne nazwy/hasła, ale trzeba je potem zmienić w
-konfiguracji aplikacji.
-
-Otwieramy wypakowany wcześniej plik `schema.sql`. Nie możemy go zaimportować
-do bazy od razu, ponieważ nie zawiera średników na końcu linii. Dodajemy je
-ręcznie lub uruchamiamy
-`cat schema.sql | sed 's/InnoDB/InnoDB;/g' | sed 's/increment by 1/increment by 1;/g' | sed -E 's/(unique \(.+\))/\1;/g' | sed -E 's/(references .+ \(.+\))/\1;/g' > schema.mariadb`.
-Importujemy do bazy danych przez `sudo mysql -D magazynier < schema.mariadb`
-(lub `sudo mysql -D magazynier < schema.sql` jeśli dodaliśmy ręcznie).
-
-Konfigurujemy klienta pocztowego. Jeśli chcemy użyć lokalnego exim4, to
-uruchamiamy `sudo dpkg-reconfigure exim4-config` i wybieramy `internet`
-jako opcję dostarczania maili. Restartujemy exim4 komendą
-`sudo service exim4 restart`.
-
-Konfigurujemy Nginxa. Usuwamy zawartość `/etc/nginx/sites-available/default`
-i wklejamy tam:
-```
-server {
-        listen 80 default_server;
-        listen [::]:80 default_server;
-
-        root /var/www/html;
-
-        index index.html;
-
-        server_name _;
-
-        location / {
-                # First attempt to serve request as file, then
-                # as directory, then fall back to displaying a 404.
-                try_files \$uri \$uri/ =404;
-        }
-
-        location /api {
-                proxy_pass http://127.0.0.1:8080;
-        }
-}
-```
-I kopiujemy do `/var/www/html` folder `magazynier`, zawierający statyczne pliki
-strony. Restartujemy Nginxa `sudo service nginx restart`.
-
-Tworzymy plik startowy:
-```
-#!/bin/bash
-EXECUTABLE=Magazynier.jar
-HOST="jdbc:mariadb://localhost:3306/magazynier"
-USER="magazynier"
-PASSWORD="magazynier"
-MAIL_SERVER="localhost"
-MAIL_PORT="25"
-MAIL_USER=""
-MAIL_PASSWORD=""
-MAIL_TRANSPORT="SMTP"
-MAIL_BASEURL="http://localhost/magazynier"
-java -jar $EXECUTABLE \
-        --spring.datasource.url=$HOST \
-        --spring.datasource.username=$USER \
-        --spring.datasource.password=$PASSWORD \
-        --smtp.host=$MAIL_SERVER \
-        --smtp.port=$MAIL_PORT \
-        --smtp.user=$MAIL_USER \
-        --smtp.password=$MAIL_PASSWORD \
-        --smtp.transport=$MAIL_TRANSPORT \
-        --smtp.baseurl="$MAIL_BASEURL"
-```
-i konfigurujemy go analogicznie do tego z sekcji Konfiguracja.
-
-Przechodziny do sekcji [Konfiguracja](#konfiguracja). Nasz adres strony to
-`http://<IP-KOMPUTERA>/magazynier`, a adres API to `http://<IP-KOMPUTERA>/api`.
-
-Po skonfigurowaniu uruchamiamy serwer skryptem który stworzyliśmy.
-
-### Docker
-Na razie brak.
-
-### SaaS
-Coming soon.
+Zatrzymujemy kontener komendą `sudo docker stop magazynier`. Przechodzimy do
+konfiguracji. Potem możemy włączyć kontener z powrotem używając
+`sudo docker start magazynier`.
 
 ## Konfiguracja
-### Komponenty systemu
-System składa się z 2 komponentów: _frontendu_, czyli statycznych plików html,
-oraz _backendu_, czyli aplikacji w Javie która obsługuje zapytania API
-z frontendu.
-
-### Frontend
-Aby system działał poprawnie, konieczna jest konfiguracja zarówno _front-_,
-jak i _back-endu_. Konfiguracja frontendu jest prostsza. Znajduje się ona
-w pliku `js/config.js`. Posiada 3 linijki:
-```
-var baseUrl = "http://localhost/magazynier";
-var apiUrl = "http://localhost/api";
-var appName = "Magazynier";
-```
-- `baseUrl` - to adres URL, pod którym znajdują się statyczne pliki systemu.
-Jeżeli nie zmieniałeś domyślnej konfiguracji, jest to
-`http://<IP KOMPUTERA>/magazynier`. Przy używaniu reverse proxy należy podać
-adres który będzie wpisywał użytkownik, np. `https://magazynier.example.org`.
-- `apiUrl` - analogicznie, jest to adres URL, pod którym dostępne są endpointy
-API. Aplikacja słucha na `http://localhost:8080/api`.
-- `appName` - jest to nazwa wyświetlana w lewym górnym rogu interfejsu
-użytkownika. Domyślnie "Magazynier". Możesz tu wpisać np. nazwę swojej
-jednostki.
-
-### Backend
-Backend najlepiej skonfigurować poprzez plik `backend.sh` obecny w przypadku
-używania Dockera lub plik startowy w przypadku instalacji na Debianie.
+System najlepiej skonfigurować poprzez plik `config.sh` obecny w folderze
+podanym w komendzie `docker run` w poprzednim rozdziale.
 Domyślna konfiguracja:
 ```
-HOST="jdbc:mariadb://localhost:3306/magazynier"
-USER="magazynier"
-PASSWORD="magazynier"
+MYSQL_HOST="jdbc:mariadb://localhost:3306/magazynier"
+MYSQL_USER="magazynier"
+MYSQL_PASSWORD="magazynier"
 MAIL_SERVER="localhost"
 MAIL_PORT="25"
 MAIL_USER=""
 MAIL_PASSWORD=""
 MAIL_TRANSPORT="SMTP"
-MAIL_BASEURL="http://localhost/magazynier"
+SITE_BASEURL="http://localhost/magazynier"
+SITE_APIURL="http://localhost/api"
 ```
-- `HOST` to adres serwera MySQL w formacie dla Javy. Domyślnie localhost.
+- `MYSQL_HOST` to adres serwera MySQL w formacie dla Javy. Domyślnie localhost.
 `/magazynier` to nazwa bazy danych.
-- `USER` to nazwa użytkownika MySQL.
-- `PASSWORD` to hasło użytkownika MySQL.
+- `MYSQL_USER` to nazwa użytkownika MySQL.
+- `MYSQL_PASSWORD` to hasło użytkownika MySQL.
 - `MAIL_SERVER` adres serwera SMTP. Domyślnie localhost, można użyć np. GMail.
 - `MAIL_PORT` port serwera SMTP. Domyślnie `25`, czyli bez szyfrowania.
 `587` dla STARTTLS, `465` dla SSL.
@@ -217,8 +116,13 @@ Używając GMaila trzeba najpierw zezwolić na niebezpieczne metody logowania
 w ustawieniach konta.
 - `MAIL_TRANSPORT` to rodzaj szyfrowania. `SMTP` oznacza brak szyfrowania,
 `SMTP_TLS` dla STARTTLS (port 587), `SMTPS` dla SSL (465).
-- `MAIL_BASEURL` to adres frontendu do umieszczenia np. w mailach aktywujących
-konto. Należy tu wpisać to co w `baseUrl` we frontendzie.
+- `SITE_BASEURL` - to adres URL, pod którym znajdują się statyczne pliki systemu.
+    Jeżeli nie zmieniałeś domyślnej konfiguracji, jest to
+    `http://<IP KOMPUTERA>/magazynier`. Przy używaniu reverse proxy należy podać
+    adres który będzie wpisywał użytkownik, np. `https://magazynier.example.org`.
+- `SITE_APIURL` - analogicznie, jest to adres URL, pod którym dostępne są endpointy
+  API. Aplikacja słucha na `http://localhost:8080/api`, ale nginx ma też domyślnie
+  przekierowanie na `http://localhost/api`.
 
 ## Demo
 Wersję demo aplikacji można zobaczyć pod adresem _TODO_.
