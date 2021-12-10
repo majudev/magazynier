@@ -12,11 +12,17 @@ public class UserConfig {
     @Bean
     public CommandLineRunner initUsers(UserRepository repo){
         return args -> {
-            /*repo.save(new User(
-                    "nobody",
-                    "nobody@all",
-                    new HashPassword("helloworld")
-            ));*/
+            if(repo.findAll().isEmpty()){
+                User admin = new User(
+                        "admin",
+                        null,
+                        "admin@localhost",
+                        new HashPassword("zmień-mnie"),
+                        "admin"
+                );
+                admin.getActivationCode().revoke();
+                repo.saveAndFlush(admin);
+            }
         };
     }
 }

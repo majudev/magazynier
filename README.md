@@ -67,7 +67,7 @@ budujemy obraz dockera.
 ```
 git clone https://github.com/majudev/magazynier-docker.git
 cd magazynier-docker
-sudo docker build -t majudev/magazynier:0.1.1-ALPHA .
+sudo docker build -t majudev/magazynier:latest .
 ```
 Po wpisaniu `sudo docker images` na liście powinien pojawić się nasz
 kontener.
@@ -82,11 +82,13 @@ sudo docker run \
     --name="magazynier" \          # nazwa kontenera
     -p 127.0.0.1:2233:80/tcp \     # system dostępny na localhost:2233
     -v /tmp/data:/data \           # dane systemu w /tmp/data
-    majudev/magazynier:0.1.1-ALPHA # nazwa obrazu dockera
+    majudev/magazynier:latest # nazwa obrazu dockera
 ```
 Zatrzymujemy kontener komendą `sudo docker stop magazynier`. Przechodzimy do
 konfiguracji. Potem możemy włączyć kontener z powrotem używając
 `sudo docker start magazynier`.
+
+Domyślny login w aplikacji to `admin`, a domyślne hasło to `zmień-mnie`.
 
 ## Konfiguracja
 System najlepiej skonfigurować poprzez plik `config.sh` obecny w folderze
@@ -101,6 +103,7 @@ MAIL_PORT="25"
 MAIL_USER=""
 MAIL_PASSWORD=""
 MAIL_TRANSPORT="SMTP"
+MAIL_FROM="no-reply@localhost"
 SITE_BASEURL="http://localhost/magazynier"
 SITE_APIURL="http://localhost/api"
 ```
@@ -116,6 +119,8 @@ Używając GMaila trzeba najpierw zezwolić na niebezpieczne metody logowania
 w ustawieniach konta.
 - `MAIL_TRANSPORT` to rodzaj szyfrowania. `SMTP` oznacza brak szyfrowania,
 `SMTP_TLS` dla STARTTLS (port 587), `SMTPS` dla SSL (465).
+- `MAIL_TRANSPORT` to nazwa nadawcy maili. Najlepiej ustawić domenę na tą,
+która widnieje w `SITE_BASEURL`.
 - `SITE_BASEURL` - to adres URL, pod którym znajdują się statyczne pliki systemu.
     Jeżeli nie zmieniałeś domyślnej konfiguracji, jest to
     `http://<IP KOMPUTERA>/magazynier`. Przy używaniu reverse proxy należy podać
