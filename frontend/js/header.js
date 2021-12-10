@@ -30,9 +30,9 @@ $(document).ready(function(){
 		method: "GET",
 		dataType: "json"
 	}).done(function(data){
-		for(var itemgroup of data){
-			$("#itemgroups_link").after('<a class="dropdown-item inject-baseurl" href="itemgroup.html?id=' + itemgroup.id + '">' + itemgroup.name + '</a>');
-		}
+		//for(var itemgroup of data){
+		//	$("#itemgroups_link").after('<a class="dropdown-item inject-baseurl" href="itemgroup.html?id=' + itemgroup.id + '">' + itemgroup.name + '</a>');
+		//}
 	}).fail(function(xhr, textStatus){
 		alert("Błąd krytyczny - strona zostanie przeładowana");
 		location.reload();
