@@ -95,7 +95,7 @@ public class UserAPIEndpoint {
     }
 
     @PutMapping(
-            path = "/self/edit",
+            path = "/edit",
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
     @Transactional
@@ -138,7 +138,7 @@ public class UserAPIEndpoint {
             if(request.getPermissionGroup().isEmpty()){
                 user.setPermissionGroup(null);
             }else{
-                if (permissionGroupRepository.existsByGroupName(request.getPermissionGroup())) throw new PermissionGroupNotFoundException(request.getPermissionGroup());
+                if (!permissionGroupRepository.existsByGroupName(request.getPermissionGroup())) throw new PermissionGroupNotFoundException(request.getPermissionGroup());
                 user.setPermissionGroup(request.getPermissionGroup());
             }
             mailerService.sendPermissionGroupChangedEmail(user);
@@ -181,7 +181,7 @@ public class UserAPIEndpoint {
     }
 
     @PutMapping(
-            path = "/self/changepassword",
+            path = "/changepassword",
             consumes = {MediaType.APPLICATION_JSON_VALUE}
     )
     @Transactional
