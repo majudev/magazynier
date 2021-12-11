@@ -130,7 +130,8 @@ która widnieje w `SITE_BASEURL`.
   przekierowanie na `http://localhost/api`.
 
 ## Demo
-Wersję demo aplikacji można zobaczyć pod adresem [magazynier.majudev.net/demo](https://magazynier.majudev.net/demo).
+Wersję demo aplikacji można zobaczyć pod adresem [magazynier.majudev.net/demo]
+(https://magazynier.majudev.net/demo).
 
 Wersja demo kasuje wszystkie zmiany wprowadzone przez użytkownika co godzinę.
 
