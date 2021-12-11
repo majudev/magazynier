@@ -2,10 +2,13 @@ package pl.zbiczagromada.Magazynier;
 
 import lombok.Getter;
 import org.simplejavamail.api.email.Email;
+import org.simplejavamail.api.mailer.AsyncResponse;
 import org.simplejavamail.api.mailer.Mailer;
 import org.simplejavamail.api.mailer.config.TransportStrategy;
 import org.simplejavamail.email.EmailBuilder;
 import org.simplejavamail.mailer.MailerBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pl.zbiczagromada.Magazynier.user.User;
@@ -37,6 +40,8 @@ public class MailerService {
       @Value("${smtp.baseurl}")
       private String baseUrl = "";
 
+      Logger log = LoggerFactory.getLogger(MailerService.class);
+
       @Getter(lazy = true)
       private final Mailer mailer = MailerBuilder
             .withSMTPServer(smtpHost, smtpPort, smtpUser, smtpPassword)
@@ -57,7 +62,11 @@ public class MailerService {
                     .withPlainText("Twój login to " + user.getUsername() + " a hasło to " + password + " -> aby aktywować swoje konto, otwórz ten link w przeglądarce: " + link)
                     .buildEmail();
 
-            getMailer().sendMail(email);
+            AsyncResponse mailExecutionStatus = getMailer().sendMail(email, true);
+            mailExecutionStatus.onException((e) -> {
+                  log.error("Couldn't send account verification e-mail to " + user.getUsername() + " (" + user.getEmail() + ")");
+                  e.printStackTrace();
+            });
       }
 
       public void sendForgotPasswordEmail(User user, ForgotPasswordCode code){
@@ -72,7 +81,11 @@ public class MailerService {
                     .withPlainText("Aby zresetować swoje hasło, otwórz ten link w przeglądarce: " + link + "\nLink będzie aktywny 24 godziny.")
                     .buildEmail();
 
-            getMailer().sendMail(email);
+            AsyncResponse mailExecutionStatus = getMailer().sendMail(email, true);
+            mailExecutionStatus.onException((e) -> {
+                  log.error("Couldn't send forgot password e-mail to " + user.getUsername() + " (" + user.getEmail() + ")");
+                  e.printStackTrace();
+            });
       }
 
       public void sendPasswordChangedEmail(User user){
@@ -87,7 +100,11 @@ public class MailerService {
                     .withPlainText("Twoje hasło w Magazynierze zostało zresetowane.")
                     .buildEmail();
 
-            getMailer().sendMail(email);
+            AsyncResponse mailExecutionStatus = getMailer().sendMail(email, true);
+            mailExecutionStatus.onException((e) -> {
+                  log.error("Couldn't send password changed e-mail to " + user.getUsername() + " (" + user.getEmail() + ")");
+                  e.printStackTrace();
+            });
       }
 
       public void sendPermissionGroupChangedEmail(User user){
@@ -102,6 +119,10 @@ public class MailerService {
                     .withPlainText("Otrzymałeś właśnie nowy poziom uprawnień w Magazynierze. Od teraz twoja grupa to " + user.getPermissionGroup())
                     .buildEmail();
 
-            getMailer().sendMail(email);
+            AsyncResponse mailExecutionStatus = getMailer().sendMail(email, true);
+            mailExecutionStatus.onException((e) -> {
+                  log.error("Couldn't send permission group changed e-mail to " + user.getUsername() + " (" + user.getEmail() + ")");
+                  e.printStackTrace();
+            });
       }
 }
